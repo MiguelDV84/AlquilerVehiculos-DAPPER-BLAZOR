@@ -8,6 +8,7 @@ using System.Text;
 using WebApiNet.Data;
 using WebApiNet.Mappers;
 using WebApiNet.Models;
+using WebApiNet.Repositories;
 using WebApiNet.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 //Inicio de migracion a DAPPER
 builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
-
+builder.Services.AddScoped<VehiculoRepository>();
 
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -65,13 +66,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.MapGet("/api/v2/vehiculos", async (IDbConnection db) =>
-{
-    // SQL puro y duro, sin rodeos
-    var sql = "SELECT * FROM Vehiculos";
 
-    // Dapper hace el mapeo automático a la clase Vehiculo
-    var vehiculos = await db.QueryAsync<Vehiculos>(sql);
+//Routing con dapper
+app.MapGet("/api/vehiculos", async (VehiculoRepository repo) =>
+{
+    var vehiculos = await repo.GetAllAsync();
 
     return Results.Ok(vehiculos);
 });
