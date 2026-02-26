@@ -18,6 +18,7 @@ namespace WebApiNet.Models
         [Column(TypeName = "date")]
         public DateOnly FechaDevolucionPrevista { get; set; }
 
+        [Column(TypeName = "date")]
         public DateOnly? FechaDevolucionReal { get; set; }
 
 
@@ -26,17 +27,17 @@ namespace WebApiNet.Models
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Precio { get; set; }
 
+        [Required(ErrorMessage = "El DNI del cliente es obligatorio")]
         public string ClienteDni { get; set; }
 
 
-        [Required(ErrorMessage = "El cliente es obligatorio")]
         [ForeignKey("ClienteDni")]
         public virtual Cliente Cliente { get; set; }
 
+        [Required(ErrorMessage = "La matrícula del vehículo es obligatoria")]
         public string VehiculoMatricula { get; set; }
 
 
-        [Required(ErrorMessage = "La película es obligatoria")]
         [ForeignKey("VehiculoMatricula")]
         public virtual Vehiculos Vehiculo { get; set; }
     }
