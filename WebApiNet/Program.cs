@@ -1,13 +1,21 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Dapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
+using System.Data;
 using System.Text;
 using WebApiNet.Data;
 using WebApiNet.Mappers;
+using WebApiNet.Models;
 using WebApiNet.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+//Inicio de migracion a DAPPER
+builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
+
 
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -56,6 +64,17 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.MapGet("/api/v2/vehiculos", async (IDbConnection db) =>
+{
+    // SQL puro y duro, sin rodeos
+    var sql = "SELECT * FROM Vehiculos";
+
+    // Dapper hace el mapeo automático a la clase Vehiculo
+    var vehiculos = await db.QueryAsync<Vehiculos>(sql);
+
+    return Results.Ok(vehiculos);
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
