@@ -1,13 +1,22 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Dapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
+using System.Data;
 using System.Text;
 using WebApiNet.Data;
 using WebApiNet.Mappers;
+using WebApiNet.Models;
+using WebApiNet.Repositories;
 using WebApiNet.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+//Inicio de migracion a DAPPER
+builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
+builder.Services.AddScoped<VehiculoRepository>();
 
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -56,6 +65,25 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+
+//Routing con dapper
+app.MapGet("/api/v2/vehiculos", async (VehiculoRepository repo) =>
+{
+    var vehiculos = await repo.GetAllAsync();
+
+    return Results.Ok(vehiculos);
+});
+
+app.MapGet("/api/v2/vehiculos/{matricula}", async (string matricula, VehiculoRepository repo) =>
+{
+    var vehiculo = await repo.GetByIdAsync(matricula);
+    if (vehiculo == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(vehiculo);
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApiNet.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDB : Migration
+    public partial class IntialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +16,7 @@ namespace WebApiNet.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Cliente",
+                name: "Clientes",
                 columns: table => new
                 {
                     Dni = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -26,16 +26,17 @@ namespace WebApiNet.Migrations
                     PasswordHash = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Nombre = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Role = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Cliente", x => x.Dni);
+                    table.PrimaryKey("PK_Clientes", x => x.Dni);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Vehiculo",
+                name: "Vehiculos",
                 columns: table => new
                 {
                     Matricula = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -47,22 +48,24 @@ namespace WebApiNet.Migrations
                     Modelo = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    LitrosTanque = table.Column<double>(type: "double", nullable: false)
+                    LitrosTanque = table.Column<double>(type: "double", nullable: false),
+                    Estado = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Vehiculo", x => x.Matricula);
+                    table.PrimaryKey("PK_Vehiculos", x => x.Matricula);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Alquiler",
+                name: "Alquileres",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FechaAlquiler = table.Column<DateOnly>(type: "date", nullable: false),
-                    FechaDevolucion = table.Column<DateOnly>(type: "date", nullable: false),
+                    FechaDevolucionPrevista = table.Column<DateOnly>(type: "date", nullable: false),
+                    FechaDevolucionReal = table.Column<DateOnly>(type: "date", nullable: true),
                     Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ClienteDni = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -71,30 +74,30 @@ namespace WebApiNet.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Alquiler", x => x.Id);
+                    table.PrimaryKey("PK_Alquileres", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Alquiler_Cliente_ClienteDni",
+                        name: "FK_Alquileres_Clientes_ClienteDni",
                         column: x => x.ClienteDni,
-                        principalTable: "Cliente",
+                        principalTable: "Clientes",
                         principalColumn: "Dni",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Alquiler_Vehiculo_VehiculoMatricula",
+                        name: "FK_Alquileres_Vehiculos_VehiculoMatricula",
                         column: x => x.VehiculoMatricula,
-                        principalTable: "Vehiculo",
+                        principalTable: "Vehiculos",
                         principalColumn: "Matricula",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Alquiler_ClienteDni",
-                table: "Alquiler",
+                name: "IX_Alquileres_ClienteDni",
+                table: "Alquileres",
                 column: "ClienteDni");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Alquiler_VehiculoMatricula",
-                table: "Alquiler",
+                name: "IX_Alquileres_VehiculoMatricula",
+                table: "Alquileres",
                 column: "VehiculoMatricula");
         }
 
@@ -102,13 +105,13 @@ namespace WebApiNet.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Alquiler");
+                name: "Alquileres");
 
             migrationBuilder.DropTable(
-                name: "Cliente");
+                name: "Clientes");
 
             migrationBuilder.DropTable(
-                name: "Vehiculo");
+                name: "Vehiculos");
         }
     }
 }
