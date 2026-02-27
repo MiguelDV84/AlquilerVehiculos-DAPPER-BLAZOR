@@ -6,6 +6,6 @@
         Task<T?> GetByIdAsync(Tkey id);
         Task<T> AddAsync(T entity);
         Task<T> UpdateAsync(T entity);
-        Task<bool> DeleteAsync(long id);
+        Task<bool> DeleteAsync(Tkey id);
     }
 }
