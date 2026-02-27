@@ -1,10 +1,32 @@
 ﻿@page "/flota"
+@rendermode InteractiveServer
 @inject HttpClient Http
 
 <PageTitle>Nuestra Flota</PageTitle>
 
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text bg-primary text-white">
+                <i class="bi bi-search"></i> 🔍
+            </span>
+            <input type="text"
+                   class="form-control"
+                   placeholder="Escribe marca o modelo (ej: Porsche)..."
+                   @bind="textoBusqueda"
+                   @bind:event="oninput" />
+        </div>
+        @if (!string.IsNullOrEmpty(textoBusqueda))
+        {
+            <div class="form-text text-muted">
+                Mostrando resultados para: <strong>@textoBusqueda</strong>
+            </div>
+        }
+    </div>
+</div>
+
 <div class="container">
-    <h1 class="my-4">Vehículos Disponibles</h1>
+    <h1 class="my-4">@mensajePrueba</h1>
 
     @if (listaDeVehiculos == null)
     {
@@ -27,28 +49,46 @@
                     <th>Modelo</th>
                     <th>Precio/Día</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var v in listaDeVehiculos)
+                @if (vehiculosFiltrados != null && vehiculosFiltrados.Any())
+                {
+                    @foreach (var v in vehiculosFiltrados)
+                    {
+                        <tr>
+                            <td><span class="badge bg-secondary">@v.Matricula</span></td>
+                            <td>@v.Marca</td>
+                            <td>@v.Modelo</td>
+                            <td>@v.Precio.ToString("C")</td>
+                            <td>
+                                @if (v.Estado == 0)
+                                {
+                                    <span class="badge bg-success">Disponible</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Alquilado</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-info btn-sm text-white" @onclick="() => VerDetalles(v.Matricula)">
+                                    <i class="bi bi-eye"></i> Ver Ficha
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else if (listaDeVehiculos != null)
                 {
                     <tr>
-                        <td><span class="badge bg-secondary">@v.Matricula</span></td>
-                        <td>@v.Marca</td>
-                        <td>@v.Modelo</td>
-                        <td>@v.Precio.ToString("C")</td>
-                        <td>
-                            @if (v.Estado == 0)
-                            {
-                                <span class="badge bg-success">Disponible</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Alquilado</span>
-                            }
+                        <td colspan="6" class="text-center text-muted">
+                            No se encontraron vehículos que coincidan con "<strong>@textoBusqueda</strong>".
                         </td>
                     </tr>
                 }
+               
             </tbody>
         </table>
     }
@@ -57,6 +97,24 @@
 @code {
     // Usamos listaDeVehiculos para evitar conflictos con el nombre de la página
     private List<Vehiculos>? listaDeVehiculos;
+    private string textoBusqueda = ""; // Variable para el buscador
+    private string mensajePrueba = "Vehículos Disponibles";
+
+    // Esta propiedad se actualiza sola cada vez que escribes
+    private List<Vehiculos>? vehiculosFiltrados =>
+        string.IsNullOrWhiteSpace(textoBusqueda)
+            ? listaDeVehiculos
+            : listaDeVehiculos?.Where(v =>
+                v.Marca.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                v.Modelo.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase)
+              ).ToList();
+
+    private void VerDetalles(string matricula)
+    {
+        // Esto cambiará el h1 de la página al instante
+        mensajePrueba = $"Has seleccionado la matrícula: {matricula}";
+        StateHasChanged(); // Forzamos el refresco visual
+    }
 
     protected override async Task OnInitializedAsync()
     {
