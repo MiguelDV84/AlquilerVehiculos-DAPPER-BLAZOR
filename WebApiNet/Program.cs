@@ -17,7 +17,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 //Inicio de migracion a DAPPER
 builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
 builder.Services.AddScoped<VehiculoRepository>();
-
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAlquilerService, AlquilerService>();
@@ -83,6 +82,22 @@ app.MapGet("/api/v2/vehiculos/{matricula}", async (string matricula, VehiculoRep
         return Results.NotFound();
     }
     return Results.Ok(vehiculo);
+});
+
+app.MapPost("/api/v2/vehiculos", async (Vehiculos vehiculo, VehiculoRepository repo) =>
+{
+    var nuevoVehiculo = await repo.AddAsync(vehiculo);
+    return Results.Created($"/api/v2/vehiculos/{nuevoVehiculo.Matricula}", nuevoVehiculo);
+});
+
+app.MapDelete("/api/v2/vehiculos/{matricula}", async (string matricula, VehiculoRepository repo) =>
+{
+    var success = await repo.DeleteAsync(matricula);
+    if (!success)
+    {
+        return Results.NotFound();
+    }
+    return Results.NoContent();
 });
 
 // Configure the HTTP request pipeline.
