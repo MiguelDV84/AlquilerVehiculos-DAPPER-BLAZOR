@@ -8,6 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Configuramos el cliente HTTP para conectar con la API de Dapper
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("http://localhost:5276/")
+});
+
 // Add device-specific services used by the AlquilerVehiculosWeb.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 
