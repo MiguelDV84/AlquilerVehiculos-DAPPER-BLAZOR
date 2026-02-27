@@ -12,8 +12,8 @@ using WebApiNet.Data;
 namespace WebApiNet.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260226075628_AddFechaDevolucionPrevista")]
-    partial class AddFechaDevolucionPrevista
+    [Migration("20260227083330_IntialCreate")]
+    partial class IntialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
