@@ -2,7 +2,7 @@
 
 namespace WebApiNet.Repositories
 {
-    public interface IVehiculoRepository : IRepository<Vehiculos>
+    public interface IVehiculoRepository : IRepository<Vehiculos, String>
     {
     }
 }

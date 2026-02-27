@@ -68,11 +68,21 @@ var app = builder.Build();
 
 
 //Routing con dapper
-app.MapGet("/api/vehiculos", async (VehiculoRepository repo) =>
+app.MapGet("/api/v2/vehiculos", async (VehiculoRepository repo) =>
 {
     var vehiculos = await repo.GetAllAsync();
 
     return Results.Ok(vehiculos);
+});
+
+app.MapGet("/api/v2/vehiculos/{matricula}", async (string matricula, VehiculoRepository repo) =>
+{
+    var vehiculo = await repo.GetByIdAsync(matricula);
+    if (vehiculo == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(vehiculo);
 });
 
 // Configure the HTTP request pipeline.

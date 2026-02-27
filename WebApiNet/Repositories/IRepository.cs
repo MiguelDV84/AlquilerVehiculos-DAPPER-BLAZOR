@@ -1,11 +1,11 @@
 ﻿namespace WebApiNet.Repositories
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T, Tkey> where T : class
     {
         Task<IReadOnlyList<T>> GetAllAsync();
-        Task<T> GetByIdAsync(long id);
-        Task<string> AddAsync(T entity);
-        Task<string> UpdateAsync(T entity);
-        Task<string> DeleteAsync(long id);
+        Task<T?> GetByIdAsync(Tkey id);
+        Task<T> AddAsync(T entity);
+        Task<T> UpdateAsync(T entity);
+        Task<bool> DeleteAsync(long id);
     }
 }

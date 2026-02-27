@@ -15,8 +15,27 @@ namespace WebApiNet.Repositories
 
         public async Task<IEnumerable<Vehiculos>> GetAllAsync()
         {
-            const string sql = "SELECT * FROM Vehiculos";
-            return await _db.QueryAsync<Vehiculos>(sql);
+            string procedureName = "sp_obtener_vehiculos";
+
+            return await _db.QueryAsync<Vehiculos>(
+                procedureName,
+                commandType: CommandType.StoredProcedure
+                );
+        }
+
+        public async Task<Vehiculos?> GetByIdAsync(string matricula)
+        {
+            string procedureName = "sp_obtener_vehiculo_por_matricula";
+            var parameters = new DynamicParameters();
+            parameters.Add("@matricula_vehiculo", matricula);
+
+            var result =  await _db.QueryFirstOrDefaultAsync<Vehiculos>(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return result;
         }
     }
 }
