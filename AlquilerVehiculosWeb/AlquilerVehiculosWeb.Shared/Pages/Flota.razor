@@ -1,0 +1,55 @@
+﻿@page "/flota"
+
+<PageTitle>Nuestra Flota</PageTitle>
+
+<h1>Vehículos Disponibles</h1>
+
+@if (vehiculos == null)
+{
+    <p><em>Cargando flota...</em></p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Precio/Día</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in vehiculos)
+            {
+                <tr>
+                    <td>@v.Marca</td>
+                    <td>@v.Modelo</td>
+                    <td>@v.Precio.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<VehiculoPrueba>? vehiculos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500); // Simula carga
+
+        vehiculos = new List<VehiculoPrueba>
+        {
+            new() { Marca = "Peugeot", Modelo = "307", Precio = 45.50m },
+            new() { Marca = "Toyota", Modelo = "Corolla", Precio = 60.00m },
+            new() { Marca = "Seat", Modelo = "Ibiza", Precio = 35.00m }
+        };
+    }
+
+    public class VehiculoPrueba
+    {
+        public string Marca { get; set; } = "";
+        public string Modelo { get; set; } = "";
+        public decimal Precio { get; set; }
+    }
+}
