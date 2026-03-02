@@ -5,12 +5,14 @@ using Microsoft.IdentityModel.Tokens;
 using MySqlConnector;
 using System.Data;
 using System.Text;
-using WebApiNet.Data;
-using WebApiNet.Endpoints;
-using WebApiNet.Mappers;
-using WebApiNet.Models;
-using WebApiNet.Repositories;
-using WebApiNet.Servicios;
+using WebApiNet.Application.Mapping;
+using WebApiNet.Application.Services;
+using WebApiNet.Core.Entities;
+using WebApiNet.Core.Interfaces;
+using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.DependencyInjection;
+using WebApiNet.Infrastructure.Repositories.UnitOfWork;
+using WebApiNet.Presentation.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -104,7 +106,7 @@ app.MapDelete("/api/v2/vehiculos/{matricula}", async (string matricula, IUnitOfW
     return Results.NoContent();
 });
 
-app.MapPut("/api/v2/vehiculos/{matricula}", async (string matricula, Vehiculos vehiculo, IUnitOfWork uow) =>
+app.MapPut("/api/v2/vehiculos/{matricula}", async (string matricula, Vehiculo vehiculo, IUnitOfWork uow) =>
 {
     var vehiculoEditado = await uow.Vehiculo.UpdateAsync(matricula, vehiculo);
 
