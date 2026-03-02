@@ -1,14 +1,20 @@
-﻿using WebApiNet.Infrastructure.Repositories.Vehiculos;
+﻿using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.Repositories.Vehiculos;
 
 namespace WebApiNet.Infrastructure.Repositories.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
-        public UnitOfWork(IVehiculoRepository vehiculoRepository)
+        private readonly DapperContext _context;
+        private IVehiculoRepository? _vehiculoRepository;
+
+        public UnitOfWork(DapperContext context)
         {
-            Vehiculo = vehiculoRepository;
+            _context = context; // 👈 AQUÍ se inyecta
         }
-        public IVehiculoRepository Vehiculo { get; }
+
+        public IVehiculoRepository Vehiculo =>
+            _vehiculoRepository ??= new VehiculoRepository(_context);
 
     }
 }

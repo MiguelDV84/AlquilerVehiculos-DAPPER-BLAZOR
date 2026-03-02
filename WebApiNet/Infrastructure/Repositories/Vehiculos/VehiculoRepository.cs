@@ -1,23 +1,26 @@
 ﻿using Dapper;
 using System.Data;
 using WebApiNet.Core.Entities;
+using WebApiNet.Infrastructure.Data;
 
 namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 {
     public class VehiculoRepository : IVehiculoRepository
     {
-        private readonly IDbConnection _db;
+        private readonly DapperContext _context;
 
-        public VehiculoRepository(IDbConnection db)
+        public VehiculoRepository(DapperContext context)
         {
-            _db = db;
+            _context = context;
         }
 
         public async Task<IReadOnlyList<Vehiculo>> GetAllAsync()
         {
+            using var connection = _context.CreateConnection();
+
             string procedureName = "sp_obtener_vehiculos";
 
-            var result = await _db.QueryAsync<Vehiculo>(
+            var result = await connection.QueryAsync<Vehiculo>(
                 procedureName,
                 commandType: CommandType.StoredProcedure
                 );
@@ -27,11 +30,13 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<Vehiculo?> GetByIdAsync(string matricula)
         {
+            using var connection = _context.CreateConnection();
+
             string procedureName = "sp_obtener_vehiculo_por_matricula";
             var parameters = new DynamicParameters();
             parameters.Add("@matricula_vehiculo", matricula);
 
-            var result = await _db.QueryFirstOrDefaultAsync<Vehiculo>(
+            var result = await connection.QueryFirstOrDefaultAsync<Vehiculo>(
                 procedureName,
                 parameters,
                 commandType: CommandType.StoredProcedure
@@ -42,6 +47,8 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<Vehiculo> AddAsync(Vehiculo vehiculo)
         {
+            using var connection = _context.CreateConnection();
+
             string procedureName = "sp_insertar_vehiculo";
             var parameters = new DynamicParameters();
             parameters.Add("@p_matricula", vehiculo.Matricula);
@@ -53,7 +60,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
             parameters.Add("@p_litros_tanque", vehiculo.LitrosTanque);
             parameters.Add("@p_estado", vehiculo.Estado);
 
-            await _db.ExecuteAsync(
+            await connection.ExecuteAsync(
                 procedureName,
                 parameters,
                 commandType: CommandType.StoredProcedure
@@ -64,11 +71,14 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<bool> DeleteAsync(string matricula)
         {
+            using var connection = _context.CreateConnection();
+
+
             string procedureName = "sp_delete_vehiculo";
             var parameters = new DynamicParameters();
             parameters.Add("@p_matricula", matricula);
 
-            int filasAfectadas = await _db.ExecuteAsync(
+            int filasAfectadas = await connection.ExecuteAsync(
                 procedureName,
                 parameters,
                 commandType: CommandType.StoredProcedure
@@ -78,6 +88,8 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<Vehiculo> UpdateAsync(string matricula, Vehiculo vehiculo)
         {
+            using var connection = _context.CreateConnection();
+
             string procedureName = "sp_update_vehiculo";
             var parameters = new DynamicParameters();
 
@@ -90,7 +102,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
             parameters.Add("@p_litros_tanque", vehiculo.LitrosTanque);
             parameters.Add("@p_estado", vehiculo.Estado);
 
-            await _db.ExecuteAsync(
+            await connection.ExecuteAsync(
                 procedureName,
                 parameters,
                 commandType: CommandType.StoredProcedure
