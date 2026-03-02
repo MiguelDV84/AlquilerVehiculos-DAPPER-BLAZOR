@@ -2,5 +2,8 @@
   <Project Path="../AlquilerVehiculosWeb/AlquilerVehiculosWeb.Shared/AlquilerVehiculosWeb.Shared.csproj" Id="3668c0ab-0612-4673-b946-d9eb93258abb" />
   <Project Path="../AlquilerVehiculosWeb/AlquilerVehiculosWeb.Web/AlquilerVehiculosWeb.Web.csproj" Id="4294873a-739c-4adb-b692-2df79ed5cc69" />
   <Project Path="../AlquilerVehiculosWeb/AlquilerVehiculosWeb/AlquilerVehiculosWeb.csproj" Id="f74e6143-7984-47e6-a350-5a55be485fca" />
+  <Project Path="../WebApiNet.Shared/WebApiNet.Shared.csproj" Id="862a22ae-5c1e-426e-828b-81e10b37a17d">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="WebApiNet.csproj" Id="095a06db-f36a-4ff9-b044-0662dc53cd4f" />
 </Solution>
