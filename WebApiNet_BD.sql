@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
   PRIMARY KEY (`MigrationId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.__EFMigrationsHistory: ~1 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.__EFMigrationsHistory: ~0 rows (aproximadamente)
 REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES
 	('20260227083330_IntialCreate', '9.0.2');
 
@@ -60,6 +60,53 @@ CREATE TABLE IF NOT EXISTS `Clientes` (
 
 -- Volcando datos para la tabla WebApiNet.Clientes: ~0 rows (aproximadamente)
 
+-- Volcando estructura para procedimiento WebApiNet.sp_delete_vehiculo
+DELIMITER //
+CREATE PROCEDURE `sp_delete_vehiculo`(
+	IN `p_matricula` VARCHAR(50)
+)
+BEGIN
+	DELETE FROM Vehiculos
+	WHERE Matricula = p_matricula;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_insertar_vehiculo
+DELIMITER //
+CREATE PROCEDURE `sp_insertar_vehiculo`(
+	IN `p_matricula` VARCHAR(50),
+	IN `p_tipo_vehiculo` INT,
+	IN `P_kilometraje` INT,
+	IN `p_marca` VARCHAR(50),
+	IN `p_modelo` VARCHAR(50),
+	IN `p_precio` DECIMAL(18,2),
+	IN `p_litros_tanque` DOUBLE,
+	IN `p_estado` INT
+)
+BEGIN
+INSERT INTO Vehiculos (
+    Matricula, 
+    TipoVehiculo, 
+    Kilometraje, 
+    Marca, 
+    Modelo, 
+    Precio, 
+    LitrosTanque, 
+    Estado
+)
+VALUES (
+    p_matricula, 
+    p_tipo_vehiculo, 
+    p_kilometraje, 
+    p_marca, 
+    p_modelo, 
+    p_precio, 
+    p_litros_tanque, 
+    p_estado
+);
+END//
+DELIMITER ;
+
 -- Volcando estructura para procedimiento WebApiNet.sp_obtener_vehiculo_por_matricula
 DELIMITER //
 CREATE PROCEDURE `sp_obtener_vehiculo_por_matricula`(
@@ -79,6 +126,32 @@ SELECT * FROM Vehiculos;
 END//
 DELIMITER ;
 
+-- Volcando estructura para procedimiento WebApiNet.sp_update_vehiculo
+DELIMITER //
+CREATE PROCEDURE `sp_update_vehiculo`(
+	IN `p_matricula` VARCHAR(50),
+	IN `p_tipo_vehiculo` INT,
+	IN `p_kilometraje` INT,
+	IN `p_marca` VARCHAR(50),
+	IN `p_modelo` VARCHAR(50),
+	IN `p_precio` DECIMAL(18,2),
+	IN `p_litros_tanque` DOUBLE,
+	IN `p_estado` INT
+)
+BEGIN
+UPDATE Vehiculos 
+	SET 
+		TipoVehiculo = p_tipo_vehiculo,
+		Kilometraje = p_kilometraje,
+		Marca = p_marca,
+		Modelo = p_modelo,
+		Precio = p_precio,
+		LitrosTanque = p_litros_tanque,
+		Estado = p_estado
+	WHERE Matricula = p_matricula;
+END//
+DELIMITER ;
+
 -- Volcando estructura para tabla WebApiNet.Vehiculos
 CREATE TABLE IF NOT EXISTS `Vehiculos` (
   `Matricula` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -92,15 +165,17 @@ CREATE TABLE IF NOT EXISTS `Vehiculos` (
   PRIMARY KEY (`Matricula`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.Vehiculos: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.Vehiculos: ~50 rows (aproximadamente)
 REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `Modelo`, `Precio`, `LitrosTanque`, `Estado`) VALUES
-	('0001FST', 3, 5000, 'Porsche', '911 Carrera', 120000.00, 64, 0),
+	('0001FST', 3, 555000, 'Porsche', '911 Carrera', 120000.00, 64, 0),
 	('0007BND', 3, 1200, 'Aston Martin', 'Vantage', 155000.00, 73, 0),
 	('1111CAM', 5, 25000, 'Fiat', 'Ducato Camper', 55000.00, 90, 0),
+	('1111LPK', 2, 100000, 'Audi', 'A5', 150.00, 64, 0),
 	('1122QWE', 0, 205000, 'Mercedes', 'Vito', 15000.00, 70, 0),
 	('1234BCN', 2, 45000, 'Seat', 'Leon', 18500.50, 50, 0),
 	('2222RVL', 5, 40000, 'Hymer', 'B-Class', 89000.00, 100, 0),
 	('2233XCV', 2, 15000, 'Mazda', '3', 24000.00, 51, 0),
+	('2564UYK', 2, 100000, 'Dacia', 'Sandero', 120.00, 64, 0),
 	('3344ASD', 1, 500000, 'MAN', 'TGX', 45000.00, 500, 0),
 	('4433FAM', 4, 65000, 'Chrysler', 'Pacifica', 35000.00, 70, 0),
 	('4455VBN', 0, 12000, 'Peugeot', 'Partner', 21500.00, 60, 0),
@@ -108,6 +183,7 @@ REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `
 	('5566GHT', 4, 98000, 'Ford', 'S-Max', 14000.00, 65, 0),
 	('6677RTY', 1, 350000, 'Volvo', 'FH16', 85000.00, 400, 0),
 	('7845JKS', 2, 12500, 'Toyota', 'Corolla', 22000.00, 50, 0),
+	('7845POL', 2, 100000, 'Honda', 'Civic', 145.00, 55, 0),
 	('8812LMN', 0, 30000, 'Citroen', 'Berlingo', 19000.00, 60, 0),
 	('9001AAA', 2, 1000, 'Ford', 'Fiesta', 17000.00, 42, 0),
 	('9002BBB', 2, 2000, 'Kia', 'Ceed', 19500.00, 50, 0),
