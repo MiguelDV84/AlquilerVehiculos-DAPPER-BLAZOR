@@ -1,5 +1,4 @@
-﻿using Dapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MySqlConnector;
@@ -7,12 +6,11 @@ using System.Data;
 using System.Text;
 using WebApiNet.Application.Mapping;
 using WebApiNet.Application.Services;
-using WebApiNet.Core.Entities;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Data;
 using WebApiNet.Infrastructure.DependencyInjection;
-using WebApiNet.Infrastructure.Repositories.UnitOfWork;
 using WebApiNet.Presentation.Endpoints;
+using WebApiNet.Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -23,6 +21,7 @@ builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionSt
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAlquilerService, AlquilerService>();
+
 
 
 builder.Services.AddHttpContextAccessor();
@@ -68,50 +67,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
-
-app.MapGet("/api/v2/vehiculos", async (IUnitOfWork uow) =>
-{
-    var vehiculos = await uow.Vehiculo.GetAllAsync();
-
-    return Results.Ok(vehiculos);
-});
-
-app.MapGet("/api/v2/vehiculos/{matricula}", async (string matricula, IUnitOfWork uow) =>
-{
-    var vehiculo = await uow.Vehiculo.GetByIdAsync(matricula);
-
-    if (vehiculo == null)
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(vehiculo);
-});
-
-/*app.MapPost("/api/v2/vehiculos", async (Vehiculos vehiculo, IUnitOfWork uow) =>
-{
-    var nuevoVehiculo = await uow.Vehiculo.AddAsync(vehiculo);
-    return Results.Created($"/api/v2/vehiculos/{nuevoVehiculo.Matricula}", nuevoVehiculo);
-});*/
-
-app.MapDelete("/api/v2/vehiculos/{matricula}", async (string matricula, IUnitOfWork uow) =>
-{
-    var success = await uow.Vehiculo.DeleteAsync(matricula);
-    if (!success)
-    {
-        return Results.NotFound();
-    }
-    return Results.NoContent();
-});
-
-app.MapPut("/api/v2/vehiculos/{matricula}", async (string matricula, Vehiculo vehiculo, IUnitOfWork uow) =>
-{
-    var vehiculoEditado = await uow.Vehiculo.UpdateAsync(matricula, vehiculo);
-
-    return Results.Ok(vehiculoEditado);
-});
+app.UseExceptionHandler(options => { });
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

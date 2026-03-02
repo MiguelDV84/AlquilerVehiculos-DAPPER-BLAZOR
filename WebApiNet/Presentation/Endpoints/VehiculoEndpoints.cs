@@ -8,18 +8,82 @@ namespace WebApiNet.Presentation.Endpoints
     {
         public static void MapVehiculoEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/v2/vehiculos", CreateVehiculo);
+            var group = app.MapGroup("/api/vehiculos")
+                .WithTags("Vehículos");
+
+            group.MapPost("/", CreateVehiculo)
+                .WithName("CreateVehiculo");
+
+            group.MapGet("/", GetAllVehiculos)
+                .WithName("GetAllVehiculos");
+
+            group.MapGet("/{matricula}", GetVehiculo)
+                .WithName("GetVehiculo");
+
+            group.MapDelete("/{matricula}", DeleteVehiculo)
+                .WithName("DeleteVehiculo");
+
+            group.MapPut("/{matricula}", UpdateVehiculo)
+                .WithName("UpdateVehiculo");
         }
 
         private static async Task<IResult> CreateVehiculo(VehiculoRequest request, IVehiculoService service)
         {
             var result = await service.CreateVehiculoAsync(request);
 
-            return Results.Created($"/api/v2/vehiculos/{result.Matricula}", new ApiResponse<object>
+            return Results.Created($"{result.Matricula}", new ApiResponse<object>
             {
                 Success = true,
                 Message = "Vehículo creado exitosamente",
                 Data = result
+            });
+        }
+
+        private static async Task<IResult> UpdateVehiculo(string matricula, VehiculoUpdateRequest request, IVehiculoService service)
+        {
+            var result = await service.UpdateVehiculoAsync(matricula, request);
+
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Vehículo actualizado exitosamente",
+                Data = result
+            });
+        }
+
+        private static async Task<IResult> GetAllVehiculos(IVehiculoService service)
+        {
+            var result = await service.GetAllVehiculosAsync();
+
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Vehículos obtenidos exitosamente",
+                Data = result
+            });
+        }
+
+        private static async Task<IResult> GetVehiculo(IVehiculoService service, string matricula)
+        {
+            var result = await service.GetVehiculoByMatriculaAsync(matricula);
+
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Vehículo obtenido correctamente",
+                Data = result
+            });
+        }
+
+        private static async Task<IResult> DeleteVehiculo(IVehiculoService service, string matricula)
+        {
+            var result = await service.DeleteVehiculoAsync(matricula);
+
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = result,
+                Message = result ? "Vehículo eliminado correctamente" : "Error al eliminar el vehículo",
+                Data = result ? new { Matricula = matricula } : null
             });
         }
     }
