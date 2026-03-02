@@ -13,12 +13,16 @@ namespace WebApiNet.Application.Mapping
             CreateMap<VehiculoRequest, Vehiculo>();
             CreateMap<Vehiculo, VehiculoRequest>();
             CreateMap<VehiculoRequest, VehiculoResponse>();
+            CreateMap<Vehiculo, VehiculoUpdateRequest>();
             CreateMap<Vehiculo, VehiculoResponse>();
+            /*  CreateMap<VehiculoUpdateRequest, Vehiculo>()
+                  .ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
+                      srcMember != null &&
+                      !(srcMember is string s && string.IsNullOrWhiteSpace(s))
+                  ));*/
             CreateMap<VehiculoUpdateRequest, Vehiculo>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
-                    srcMember != null &&
-                    !(srcMember is string s && string.IsNullOrWhiteSpace(s))
-                ));
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
 
             CreateMap<RegisterRequest, Cliente>();
 
