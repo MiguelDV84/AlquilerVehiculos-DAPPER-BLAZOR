@@ -1,9 +1,10 @@
 ﻿@page "/catalogo"
+@using WebApiNet.Core.Entities
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
-@using WebApiNet.Application.DTOs.Common
+
 
 <PageTitle>Nuestra Flota</PageTitle>
 
@@ -35,16 +36,16 @@
 </div>
 
 <div class="container">
-    <h1 class="my-4">Catalogo Vehiculo</h1>
+    <h1 class="my-4">Catalogo Vehiculos</h1>
 
-    @if (listaDeVehiculo == null)
+    @if (listaDeVehiculos == null)
     {
         <div class="d-flex align-items-center">
             <strong>Cargando flota desde la API...</strong>
             <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
         </div>
     }
-    else if (listaDeVehiculo.Count == 0)
+    else if (listaDeVehiculos.Count == 0)
     {
         <p>No se encontraron vehículos en la base de datos.</p>
     }
@@ -62,9 +63,9 @@
                 </tr>
             </thead>
             <tbody>
-                @if (VehiculoFiltrados != null && VehiculoFiltrados.Any())
+                @if (vehiculosFiltrados != null && vehiculosFiltrados.Any())
                 {
-                    @foreach (var v in VehiculoFiltrados)
+                    @foreach (var v in vehiculosFiltrados)
                     {
                         <tr>
                             <td><span class="badge bg-secondary">@v.Matricula</span></td>
@@ -100,7 +101,7 @@
                         </tr>
                     }
                 }
-                else if (listaDeVehiculo != null)
+                else if (listaDeVehiculos != null)
                 {
                     <tr>
                         <td colspan="6" class="text-center text-muted">
@@ -115,23 +116,23 @@
 </div>
 
 @code {
-    // Usamos listaDeVehiculo para evitar conflictos con el nombre de la página
-    private List<Vehiculo>? listaDeVehiculo;
+    // Usamos listaDeVehiculos para evitar conflictos con el nombre de la página
+    private List<Vehiculo>? listaDeVehiculos;
     private string textoBusqueda = ""; // Variable para el buscador
     private string mensajePrueba = "Vehículos Disponibles";
 
     // Esta propiedad se actualiza sola cada vez que escribes
-    private List<Vehiculo>? VehiculoFiltrados =>
+    private List<Vehiculo>? vehiculosFiltrados =>
         string.IsNullOrWhiteSpace(textoBusqueda)
-            ? listaDeVehiculo
-            : listaDeVehiculo?.Where(v =>
+            ? listaDeVehiculos
+            : listaDeVehiculos?.Where(v =>
                 v.Marca.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase) ||
                 v.Modelo.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase)
               ).ToList();
 
     private void VerDetalles(string matricula)
     {
-        Navigation.NavigateTo($"/vehiculos/{matricula}");
+        Navigation.NavigateTo($"/vehiculo/{matricula}");
     }
 
     private void IrANuevoVehiculo()
@@ -144,11 +145,11 @@
         bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Estás seguro de que quieres borrar el vehículo con matrícula {matricula}? Esta acción no se puede deshacer.");
         if (confirmado)
         {
-            var response = await Http.DeleteAsync($"api/vehiculos/{matricula}");
+            var response = await Http.DeleteAsync($"api/v2/vehiculos/{matricula}");
             if (response.IsSuccessStatusCode)
             {
                 // Refrescamos la lista después de borrar
-                listaDeVehiculo = await Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos");
+                listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/vehiculos");
             }
             else
             {
@@ -161,14 +162,7 @@
     {
         try
         {
-            // 1. Pedimos el objeto ApiResponse completo
-            var respuesta = await Http.GetFromJsonAsync<ApiResponse<List<Vehiculo>>>("api/vehiculos");
-
-            // 2. Si la respuesta es exitosa, extraemos la lista de la propiedad .Data
-            if (respuesta != null && respuesta.Success)
-            {
-                listaDeVehiculo = respuesta.Data;
-            }
+            listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/vehiculos");
         }
         catch (Exception ex)
         {
