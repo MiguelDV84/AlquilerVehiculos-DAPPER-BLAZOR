@@ -56,14 +56,14 @@
 
 @code {
     // Usamos listaDeVehiculos para evitar conflictos con el nombre de la página
-    private List<Vehiculos>? listaDeVehiculos;
+    private List<Vehiculo>? listaDeVehiculos;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             // Llamada limpia a la v2 que probamos en Postman
-            listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculos>>("api/v2/vehiculos");
+            listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/vehiculos");
         }
         catch (Exception ex)
         {
