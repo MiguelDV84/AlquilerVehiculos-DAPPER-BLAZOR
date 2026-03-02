@@ -12,6 +12,7 @@ namespace WebApiNet.Controllers
     {
         private readonly IVehiculoService _vehiculoService;
 
+
         public VehiculoController(IVehiculoService vehiculoService)
         {
             _vehiculoService = vehiculoService;
@@ -170,5 +171,9 @@ namespace WebApiNet.Controllers
                 });
             }
         }
+
+
+       
+
     }
 }

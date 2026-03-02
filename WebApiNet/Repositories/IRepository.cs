@@ -5,7 +5,7 @@
         Task<IReadOnlyList<T>> GetAllAsync();
         Task<T?> GetByIdAsync(Tkey id);
         Task<T> AddAsync(T entity);
-        Task<T> UpdateAsync(T entity);
+        Task<T> UpdateAsync(Tkey id,T entity);
         Task<bool> DeleteAsync(Tkey id);
     }
 }

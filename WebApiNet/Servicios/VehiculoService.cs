@@ -1,48 +1,62 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using WebApiNet.Data;
 using WebApiNet.Dto;
 using WebApiNet.Models;
-using WebApiNet.Tipos;
-using System.Security.Claims;
+using WebApiNet.Repositories;
 
 namespace WebApiNet.Servicios
 {
     public class VehiculoService : IVehiculoService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public VehiculoService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public VehiculoService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<bool> CambiarEstadoVehiculoAsync(string matricula, EstadoVehiculo nuevoEstado)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public async Task<VehiculoResponse> CreateVehiculoAsync(VehiculoRequest vehiculoDto)
         {
-            if (_context.Vehiculos.Any(v => v.Matricula == vehiculoDto.Matricula))
+            var existente = await _unitOfWork.Vehiculo.GetByIdAsync(vehiculoDto.Matricula);
+
+            if (existente != null)
             {
                 throw new InvalidOperationException("Ya existe un vehículo con esa matrícula.");
             }
 
-            var vehiculo = _mapper.Map<Vehiculos>(vehiculoDto);
+            var nuevoVehiculo = _mapper.Map<Vehiculos>(vehiculoDto);
+            await _unitOfWork.Vehiculo.AddAsync(nuevoVehiculo);
 
-            _context.Vehiculos.Add(vehiculo);
-            await _context.SaveChangesAsync();
-
-            var response = _mapper.Map<VehiculoResponse>(vehiculoDto);
-
-            return response;
+            return _mapper.Map<VehiculoResponse>(nuevoVehiculo);
         }
 
-        public async Task<bool> DeleteVehiculoAsync(string matricula)
+        public Task<bool> DeleteVehiculoAsync(string matricula)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<VehiculoResponse>> GetAllVehiculosAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<VehiculoResponse> GetVehiculoByMatriculaAsync(string matricula)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<VehiculoResponse> UpdateVehiculoAsync(string matricula, VehiculoUpdateRequest vehiculoDto)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+
+     /*   public async Task<bool> DeleteVehiculoAsync(string matricula)
         {
             try
             {
@@ -99,3 +113,4 @@ namespace WebApiNet.Servicios
 
     }
 }
+     */

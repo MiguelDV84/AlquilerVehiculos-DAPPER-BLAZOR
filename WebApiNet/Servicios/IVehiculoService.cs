@@ -11,6 +11,5 @@ namespace WebApiNet.Servicios
         Task<VehiculoResponse> CreateVehiculoAsync(VehiculoRequest vehiculoDto);
         Task<VehiculoResponse> UpdateVehiculoAsync(string matricula, VehiculoUpdateRequest vehiculoDto);
         Task<bool> DeleteVehiculoAsync(string matricula);
-        Task<bool> CambiarEstadoVehiculoAsync(string matricula, EstadoVehiculo nuevoEstado);
     }
 }

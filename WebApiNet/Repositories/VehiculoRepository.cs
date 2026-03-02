@@ -76,12 +76,12 @@ namespace WebApiNet.Repositories
             return filasAfectadas > 0 ? true : false;
         }
 
-        public async Task<Vehiculos> UpdateAsync(Vehiculos vehiculo)
+        public async Task<Vehiculos> UpdateAsync(string matricula, Vehiculos vehiculo)
         {
             string procedureName = "sp_update_vehiculo";
             var parameters = new DynamicParameters();
 
-            parameters.Add("@p_matricula", vehiculo.Matricula);
+            parameters.Add("@p_matricula", matricula);
             parameters.Add("@p_tipo_vehiculo", vehiculo.TipoVehiculo);
             parameters.Add("@p_kilometraje", vehiculo.Kilometraje);
             parameters.Add("@p_marca", vehiculo.Marca);
