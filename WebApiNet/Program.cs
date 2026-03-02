@@ -5,21 +5,26 @@ using Microsoft.IdentityModel.Tokens;
 using MySqlConnector;
 using System.Data;
 using System.Text;
-using WebApiNet.Data;
-using WebApiNet.Mappers;
-using WebApiNet.Models;
-using WebApiNet.Repositories;
-using WebApiNet.Servicios;
+using WebApiNet.Application.Mapping;
+using WebApiNet.Application.Services;
+using WebApiNet.Core.Entities;
+using WebApiNet.Core.Interfaces;
+using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.DependencyInjection;
+using WebApiNet.Infrastructure.Repositories.UnitOfWork;
+using WebApiNet.Presentation.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-//Inicio de migracion a DAPPER
+builder.Services.AddInfrastructure();
+
 builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
-builder.Services.AddScoped<VehiculoRepository>();
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAlquilerService, AlquilerService>();
+
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(cfg =>
 {
@@ -66,38 +71,46 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 
-//Routing con dapper
-app.MapGet("/api/v2/vehiculos", async (VehiculoRepository repo) =>
+app.MapGet("/api/v2/vehiculos", async (IUnitOfWork uow) =>
 {
-    var vehiculos = await repo.GetAllAsync();
+    var vehiculos = await uow.Vehiculo.GetAllAsync();
 
     return Results.Ok(vehiculos);
 });
 
-app.MapGet("/api/v2/vehiculos/{matricula}", async (string matricula, VehiculoRepository repo) =>
+app.MapGet("/api/v2/vehiculos/{matricula}", async (string matricula, IUnitOfWork uow) =>
 {
-    var vehiculo = await repo.GetByIdAsync(matricula);
+    var vehiculo = await uow.Vehiculo.GetByIdAsync(matricula);
+
     if (vehiculo == null)
     {
         return Results.NotFound();
     }
+
     return Results.Ok(vehiculo);
 });
 
-app.MapPost("/api/v2/vehiculos", async (Vehiculos vehiculo, VehiculoRepository repo) =>
+/*app.MapPost("/api/v2/vehiculos", async (Vehiculos vehiculo, IUnitOfWork uow) =>
 {
-    var nuevoVehiculo = await repo.AddAsync(vehiculo);
+    var nuevoVehiculo = await uow.Vehiculo.AddAsync(vehiculo);
     return Results.Created($"/api/v2/vehiculos/{nuevoVehiculo.Matricula}", nuevoVehiculo);
-});
+});*/
 
-app.MapDelete("/api/v2/vehiculos/{matricula}", async (string matricula, VehiculoRepository repo) =>
+app.MapDelete("/api/v2/vehiculos/{matricula}", async (string matricula, IUnitOfWork uow) =>
 {
-    var success = await repo.DeleteAsync(matricula);
+    var success = await uow.Vehiculo.DeleteAsync(matricula);
     if (!success)
     {
         return Results.NotFound();
     }
     return Results.NoContent();
+});
+
+app.MapPut("/api/v2/vehiculos/{matricula}", async (string matricula, Vehiculo vehiculo, IUnitOfWork uow) =>
+{
+    var vehiculoEditado = await uow.Vehiculo.UpdateAsync(matricula, vehiculo);
+
+    return Results.Ok(vehiculoEditado);
 });
 
 // Configure the HTTP request pipeline.
@@ -113,6 +126,8 @@ app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+app.MapVehiculoEndpoints();
 app.MapControllers();
 
 app.Run();

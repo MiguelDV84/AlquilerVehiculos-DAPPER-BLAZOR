@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApiNet.Constantes;
-using WebApiNet.Dto;
-using WebApiNet.Servicios;
+using WebApiNet.Application.DTOs.Common;
+using WebApiNet.Application.DTOs.Vehiculo;
+using WebApiNet.Core.Interfaces;
+using WebApiNet.Shared.Constants;
 
 namespace WebApiNet.Controllers
 {
@@ -11,6 +12,7 @@ namespace WebApiNet.Controllers
     public class VehiculoController : ControllerBase
     {
         private readonly IVehiculoService _vehiculoService;
+
 
         public VehiculoController(IVehiculoService vehiculoService)
         {
@@ -170,5 +172,9 @@ namespace WebApiNet.Controllers
                 });
             }
         }
+
+
+       
+
     }
 }
