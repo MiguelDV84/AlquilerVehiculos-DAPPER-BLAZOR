@@ -2,12 +2,98 @@
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS 
+@using WebApiNet.Tipos;
+
+
 <h3>Nuevo Vehiculo</h3>
 
+<div>
+    <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarVehiculo">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger small" />
+        <div class="mb-3">
+            <label for="matricula">Matricula:</label>
+            <InputText @bind-Value="nuevoVehiculo.Matricula" class="form-control" />
+        </div>
 
+        <div class="mb-3">
+            <label for="tipovehiculo">Tipo de Vehículo:</label>
+           
+            <InputSelect @bind-Value="nuevoVehiculo.TipoVehiculo" class="form-control">
+                @foreach (var tipo in Enum.GetValues<TipoVehiculo>())
+                {
+                    <option value="@tipo">@tipo</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label for="kilometraje">Kilometraje (km):</label>
+            <InputNumber @bind-Value="nuevoVehiculo.Kilometraje" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="marca">Marca:</label>
+            <InputText @bind-Value="nuevoVehiculo.Marca" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="modelo">Modelo:</label>
+            <InputText @bind-Value="nuevoVehiculo.Modelo" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="precio">Precio:</label>
+            <InputNumber @bind-Value="nuevoVehiculo.Precio" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="litrostanque">Litros del Tanque</label>
+            <InputNumber @bind-Value="nuevoVehiculo.LitrosTanque" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="estado">Estado:</label>
+            <InputSelect @bind-Value="nuevoVehiculo.Estado" class="form-control">
+                @foreach (var estado in Enum.GetValues<EstadoVehiculo>())
+                {
+                    <option value="@estado">@estado</option>
+                }
+            </InputSelect>
+
+        </div>
+
+        <br/>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+    </EditForm>
+</div>
 
 @code {
     private Vehiculos nuevoVehiculo = new Vehiculos();
 
+    private async Task GuardarVehiculo()
+    {
+        // Esta línea llama directamente al código de la API
+        var response = await Http.PostAsJsonAsync("api/v2/vehiculos", nuevoVehiculo);
 
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/catalogo");
+        }
+    }
+
+    private async Task Cancelar()
+    {
+        // Lanzamos una ventana emergente del navegador
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los datos introducidos.");
+
+        if (confirmado)
+        {
+            Navigation.NavigateTo("/catalogo");
+        }
+        // Si pulsa "Cancelar" en la ventana, no hace nada y se queda en el formulario
+    }
 }

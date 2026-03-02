@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+
 
 <PageTitle>Nuestra Flota</PageTitle>
 
@@ -24,10 +26,16 @@
             </div>
         }
     </div>
+    <br/>
+    <div class="col-md-6">
+        <button class="btn btn-success" @onclick="IrANuevoVehiculo">
+            <i class="bi bi-plus-circle me-2"></i>Añadir Nuevo Vehículo
+        </button>
+    </div>
 </div>
 
 <div class="container">
-    <h1 class="my-4">@mensajePrueba</h1>
+    <h1 class="my-4">Catalogo Vehiculos</h1>
 
     @if (listaDeVehiculos == null)
     {
@@ -85,6 +93,9 @@
                                 <button class="btn btn-info btn-sm text-white" @onclick="() => VerDetalles(v.Matricula)">
                                     <i class="bi bi-eye"></i> Ver Ficha
                                 </button>
+                                <button class="btn btn-danger btn-sm text-white" @onclick="() => BorrarVehiculo(v.Matricula)">
+                                    <i class="bi bi-trash"></i> Borrar Ficha
+                                </button>
                             </td>
                         </tr>
                     }
@@ -123,11 +134,33 @@
         Navigation.NavigateTo($"/vehiculo/{matricula}");
     }
 
+    private void IrANuevoVehiculo()
+    {
+        Navigation.NavigateTo("/nuevo-vehiculo");
+    }
+
+    private async Task BorrarVehiculo(string matricula)
+    {
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Estás seguro de que quieres borrar el vehículo con matrícula {matricula}? Esta acción no se puede deshacer.");
+        if (confirmado)
+        {
+            var response = await Http.DeleteAsync($"api/v2/vehiculos/{matricula}");
+            if (response.IsSuccessStatusCode)
+            {
+                // Refrescamos la lista después de borrar
+                listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculos>>("api/v2/vehiculos");
+            }
+            else
+            {
+                Console.WriteLine($"Error al borrar el vehículo: {response.ReasonPhrase}");
+            }
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Llamada limpia a la v2 que probamos en Postman
             listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculos>>("api/v2/vehiculos");
         }
         catch (Exception ex)
