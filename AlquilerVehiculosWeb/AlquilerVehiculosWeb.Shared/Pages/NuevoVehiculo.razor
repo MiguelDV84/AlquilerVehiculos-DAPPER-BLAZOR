@@ -1,9 +1,9 @@
 ﻿@page "/nuevo-vehiculo"
+@using WebApiNet.Core.Enums
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS 
-@using WebApiNet.Tipos;
 
 
 <h3>Nuevo Vehiculo</h3>
@@ -72,7 +72,7 @@
 </div>
 
 @code {
-    private Vehiculos nuevoVehiculo = new Vehiculos();
+    private Vehiculo nuevoVehiculo = new Vehiculo();
 
     private async Task GuardarVehiculo()
     {

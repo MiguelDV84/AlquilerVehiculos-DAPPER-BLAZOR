@@ -115,12 +115,12 @@ else{
 @code {
     [Parameter]
     public String Matricula { get; set; }
-    private Vehiculos vehiculo;
+    private Vehiculo vehiculo;
     
     protected override async Task OnInitializedAsync()
     {
         // Llamamos al endpoint de detalle que preparó tu compañero
-        vehiculo = await Http.GetFromJsonAsync<Vehiculos>($"api/v2/vehiculos/{Matricula}");
+        vehiculo = await Http.GetFromJsonAsync<Vehiculo>($"api/v2/vehiculos/{Matricula}");
     }
 
     private void Volver() => Navigation.NavigateTo("/catalogo");

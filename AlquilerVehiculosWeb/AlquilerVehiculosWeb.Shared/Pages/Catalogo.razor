@@ -35,16 +35,16 @@
 </div>
 
 <div class="container">
-    <h1 class="my-4">Catalogo Vehiculos</h1>
+    <h1 class="my-4">Catalogo Vehiculo</h1>
 
-    @if (listaDeVehiculos == null)
+    @if (listaDeVehiculo == null)
     {
         <div class="d-flex align-items-center">
             <strong>Cargando flota desde la API...</strong>
             <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
         </div>
     }
-    else if (listaDeVehiculos.Count == 0)
+    else if (listaDeVehiculo.Count == 0)
     {
         <p>No se encontraron vehículos en la base de datos.</p>
     }
@@ -62,9 +62,9 @@
                 </tr>
             </thead>
             <tbody>
-                @if (vehiculosFiltrados != null && vehiculosFiltrados.Any())
+                @if (VehiculoFiltrados != null && VehiculoFiltrados.Any())
                 {
-                    @foreach (var v in vehiculosFiltrados)
+                    @foreach (var v in VehiculoFiltrados)
                     {
                         <tr>
                             <td><span class="badge bg-secondary">@v.Matricula</span></td>
@@ -100,7 +100,7 @@
                         </tr>
                     }
                 }
-                else if (listaDeVehiculos != null)
+                else if (listaDeVehiculo != null)
                 {
                     <tr>
                         <td colspan="6" class="text-center text-muted">
@@ -115,16 +115,16 @@
 </div>
 
 @code {
-    // Usamos listaDeVehiculos para evitar conflictos con el nombre de la página
-    private List<Vehiculos>? listaDeVehiculos;
+    // Usamos listaDeVehiculo para evitar conflictos con el nombre de la página
+    private List<Vehiculo>? listaDeVehiculo;
     private string textoBusqueda = ""; // Variable para el buscador
     private string mensajePrueba = "Vehículos Disponibles";
 
     // Esta propiedad se actualiza sola cada vez que escribes
-    private List<Vehiculos>? vehiculosFiltrados =>
+    private List<Vehiculo>? VehiculoFiltrados =>
         string.IsNullOrWhiteSpace(textoBusqueda)
-            ? listaDeVehiculos
-            : listaDeVehiculos?.Where(v =>
+            ? listaDeVehiculo
+            : listaDeVehiculo?.Where(v =>
                 v.Marca.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase) ||
                 v.Modelo.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase)
               ).ToList();
@@ -144,11 +144,11 @@
         bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Estás seguro de que quieres borrar el vehículo con matrícula {matricula}? Esta acción no se puede deshacer.");
         if (confirmado)
         {
-            var response = await Http.DeleteAsync($"api/v2/vehiculos/{matricula}");
+            var response = await Http.DeleteAsync($"api/v2/Vehiculo/{matricula}");
             if (response.IsSuccessStatusCode)
             {
                 // Refrescamos la lista después de borrar
-                listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculos>>("api/v2/vehiculos");
+                listaDeVehiculo = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/Vehiculo");
             }
             else
             {
@@ -161,7 +161,7 @@
     {
         try
         {
-            listaDeVehiculos = await Http.GetFromJsonAsync<List<Vehiculos>>("api/v2/vehiculos");
+            listaDeVehiculo = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/Vehiculo");
         }
         catch (Exception ex)
         {
