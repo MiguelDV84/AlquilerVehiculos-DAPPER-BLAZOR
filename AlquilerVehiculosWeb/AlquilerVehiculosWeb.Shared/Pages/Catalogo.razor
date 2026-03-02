@@ -1,6 +1,7 @@
-﻿@page "/flota"
+﻿@page "/catalogo"
 @rendermode InteractiveServer
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <PageTitle>Nuestra Flota</PageTitle>
 
@@ -8,7 +9,7 @@
     <div class="col-md-6">
         <div class="input-group">
             <span class="input-group-text bg-primary text-white">
-                <i class="bi bi-search"></i> 🔍
+                <i class="bi bi-search"></i>
             </span>
             <input type="text"
                    class="form-control"
@@ -63,13 +64,21 @@
                             <td>@v.Modelo</td>
                             <td>@v.Precio.ToString("C")</td>
                             <td>
-                                @if (v.Estado == 0)
+                                @if ((int)v.Estado == 0)
                                 {
                                     <span class="badge bg-success">Disponible</span>
                                 }
-                                else
+                                else if ((int)v.Estado == 1)
                                 {
                                     <span class="badge bg-danger">Alquilado</span>
+                                }
+                                else if ((int)v.Estado == 2)
+                                {
+                                    <span class="badge bg-danger">En Mantenimiento</span>
+                                }
+                                else if ((int)v.Estado == 3)
+                                {
+                                    <span class="badge bg-danger">Vendido</span>
                                 }
                             </td>
                             <td>
@@ -111,9 +120,7 @@
 
     private void VerDetalles(string matricula)
     {
-        // Esto cambiará el h1 de la página al instante
-        mensajePrueba = $"Has seleccionado la matrícula: {matricula}";
-        StateHasChanged(); // Forzamos el refresco visual
+        Navigation.NavigateTo($"/vehiculo/{matricula}");
     }
 
     protected override async Task OnInitializedAsync()
