@@ -673,10 +673,4 @@ MIT License - ver [LICENSE](LICENSE)
 
 ---
 
-## 👥 Autores
-
-- **Miguel DV** - [@MiguelDV84](https://github.com/MiguelDV84)
-
----
-
 ## ⭐ Si te ha sido útil, ¡dale una estrella en GitHub!
