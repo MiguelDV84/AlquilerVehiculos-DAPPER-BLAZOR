@@ -557,6 +557,7 @@ POST /api/alquileres
 Authorization: Bearer <token>
 ```
 
+
 ### Obtener Alquileres
 
 ```http
