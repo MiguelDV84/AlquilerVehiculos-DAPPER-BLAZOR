@@ -1,6 +1,7 @@
-﻿using WebApiNet.Application.DTOs.Auth;
-using WebApiNet.Application.DTOs.Common;
+﻿
 using WebApiNet.Core.Interfaces;
+using WebApiNet.Shared.DTOs.Auth;
+using WebApiNet.Shared.DTOs.Common;
 
 namespace WebApiNet.Presentation.Endpoints
 {
