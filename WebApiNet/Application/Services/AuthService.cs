@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using BCrypt.Net;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -7,7 +6,6 @@ using System.Text;
 using WebApiNet.Application.DTOs.Auth;
 using WebApiNet.Core.Entities;
 using WebApiNet.Core.Interfaces;
-using WebApiNet.Infrastructure.Data;
 using WebApiNet.Infrastructure.Repositories.UnitOfWork;
 
 namespace WebApiNet.Application.Services
