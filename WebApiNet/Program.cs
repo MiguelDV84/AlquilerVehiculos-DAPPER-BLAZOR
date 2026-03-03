@@ -89,6 +89,7 @@ app.UseAuthorization();
 
 
 app.MapVehiculoEndpoints();
+app.MapAuthEndpoints();
 app.MapControllers();
 
 app.Run();

@@ -7,22 +7,26 @@ using WebApiNet.Application.DTOs.Auth;
 using WebApiNet.Core.Entities;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.Repositories.UnitOfWork;
 
 namespace WebApiNet.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _config;
 
-        public AuthService(ApplicationDbContext context, IMapper mapper, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+
+
+        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration config )
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _config = config;
             _httpContextAccessor = httpContextAccessor;
+            _config = config;
+
         }
 
         public Task<IEnumerable<UserResponse>> GetAllUserAync()
@@ -32,27 +36,31 @@ namespace WebApiNet.Application.Services
 
         public Task<UserResponse> GetUserAsync()
         {
-            var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-               throw new KeyNotFoundException("No se ha encontrado DNI.");
-
-
-            var cliente = _context.Clientes.FirstOrDefault(c => c.Dni == dni) ??
-                throw new KeyNotFoundException("Usuario no encontrado");
-
-            return Task.FromResult(new UserResponse
-            {
-                Dni = cliente.Dni,
-                Nombre = cliente.Nombre,
-                Email = cliente.Email
-            });
+            throw new NotImplementedException();
         }
+
+        /*    public Task<UserResponse> GetUserAsync()
+            {
+                var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                   throw new KeyNotFoundException("No se ha encontrado DNI.");
+
+
+                var cliente = _context.Clientes.FirstOrDefault(c => c.Dni == dni) ??
+                    throw new KeyNotFoundException("Usuario no encontrado");
+
+                return Task.FromResult(new UserResponse
+                {
+                    Dni = cliente.Dni,
+                    Nombre = cliente.Nombre,
+                    Email = cliente.Email
+                });
+            }*/
 
         public async Task<AuthResponse> Login(LoginRequest loginDto)
         {
-            var cliente = _context.Clientes.FirstOrDefault(c => c.Email == loginDto.Email) ??
-                throw new KeyNotFoundException("Usuario o contraseña incorrectos");
-
-            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, cliente.PasswordHash))
+            var cliente = await _unitOfWork.Auth.GetByIdAsync(loginDto.Email) ?? 
+                throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
+            if (loginDto.Password != cliente.PasswordHash)
             {
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
             }
@@ -71,26 +79,31 @@ namespace WebApiNet.Application.Services
             };
         }
 
-        public async Task<UserResponse> Register(RegisterRequest registerRequest)
+        public Task<UserResponse> Register(RegisterRequest registerDto)
         {
-          if(_context.Clientes.Any(c => c.Dni == registerRequest.Dni))
-            {
-                throw new InvalidOperationException("El DNI ya está registrado");
-            }
-
-            var cliente = _mapper.Map<Cliente>(registerRequest);
-            cliente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password);
-
-            _context.Clientes.Add(cliente);
-            await _context.SaveChangesAsync();
-
-            return new UserResponse {
-                Dni = cliente.Dni,
-                Nombre = cliente.Nombre,
-                Email = cliente.Email
-            };
+            throw new NotImplementedException();
         }
 
+        /*   public async Task<UserResponse> Register(RegisterRequest registerRequest)
+           {
+             if(_context.Clientes.Any(c => c.Dni == registerRequest.Dni))
+               {
+                   throw new InvalidOperationException("El DNI ya está registrado");
+               }
+
+               var cliente = _mapper.Map<Cliente>(registerRequest);
+               cliente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password);
+
+               _context.Clientes.Add(cliente);
+               await _context.SaveChangesAsync();
+
+               return new UserResponse {
+                   Dni = cliente.Dni,
+                   Nombre = cliente.Nombre,
+                   Email = cliente.Email
+               };
+           }
+        */
         private object GenerateJwtToken(Cliente cliente)
         {
             var claims = new[]
