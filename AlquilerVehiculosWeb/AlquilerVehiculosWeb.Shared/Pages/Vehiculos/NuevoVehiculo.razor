@@ -100,6 +100,12 @@
 
     private void Cancelar()
     {
-        Navigation.NavigateTo("/catalogo");
+        var confirmacion = JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los cambios realizados.");
+
+        if (confirmacion.Result) // Esperamos el resultado de la confirmación
+        {
+            Navigation.NavigateTo("/catalogo");
+        }
+
     }
 }

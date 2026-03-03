@@ -1,0 +1,114 @@
+﻿@page "/editar-vehiculo/{Matricula}"
+@using WebApiNet.Shared.DTOs.Vehiculo
+@using WebApiNet.Shared.DTOs.Common
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+
+<h3>Editar Vehículo: @Matricula</h3>
+
+@if (modeloEdicion == null)
+{
+    <div class="d-flex align-items-center">
+        <strong>Cargando datos del vehículo...</strong>
+        <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <EditForm Model="modeloEdicion" OnValidSubmit="editarVehiculo">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="alert alert-danger" />
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Marca:</label>
+                        <InputText @bind-Value="modeloEdicion.Marca" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Modelo:</label>
+                        <InputText @bind-Value="modeloEdicion.Modelo" class="form-control" />
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Precio por día:</label>
+                        <InputNumber @bind-Value="modeloEdicion.Precio" class="form-control" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Kilometraje (km):</label>
+                        <InputNumber @bind-Value="modeloEdicion.Kilometraje" class="form-control" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Litros Tanque:</label>
+                        <InputNumber @bind-Value="modeloEdicion.LitrosTanque" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Guardar cambios
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter] public string Matricula { get; set; } = string.Empty;
+
+    private VehiculoUpdateRequest modeloEdicion = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Obtener los datos actuales del vehículo para rellenar el formulario
+        var response = await Http.GetFromJsonAsync<ApiResponse<VehiculoResponse>>($"api/vehiculos/{Matricula}");
+
+        if (response != null && response.Success)
+        {
+            // Mapeamos los datos recibidos al modelo de edición
+            modeloEdicion.Modelo = response.Data.Modelo;
+            modeloEdicion.Marca = response.Data.Marca;
+            modeloEdicion.Precio = response.Data.Precio;
+            modeloEdicion.Kilometraje = response.Data.Kilometraje;
+            modeloEdicion.LitrosTanque = response.Data.LitrosTanque;
+        }
+    }
+
+    public async Task editarVehiculo()
+    {
+        // 2. Llamar al endpoint PUT /api/vehiculos/{matricula}
+        var response = await Http.PutAsJsonAsync($"api/vehiculos/{Matricula}", modeloEdicion);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // 3. Si la edición fue exitosa, redirigimos al catálogo o a los detalles
+            await JS.InvokeVoidAsync("alert", "Vehículo actualizado correctamente");
+            Navigation.NavigateTo("/catalogo");
+        }
+        else
+        {
+            // Manejo de errores (podrías mostrar un mensaje al usuario)
+            await JS.InvokeVoidAsync("alert", "Error al editar el vehículo. Por favor, inténtalo de nuevo.");
+        }
+    }
+
+    private async Task Cancelar()
+    {
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los cambios.");
+        if (confirmado)
+        {
+            Navigation.NavigateTo("/catalogo");
+        }
+
+    }
+}
