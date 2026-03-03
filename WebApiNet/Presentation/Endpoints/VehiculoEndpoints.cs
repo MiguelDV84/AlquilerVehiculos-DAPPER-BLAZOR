@@ -9,7 +9,8 @@ namespace WebApiNet.Presentation.Endpoints
         public static void MapVehiculoEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/vehiculos")
-                .WithTags("Vehículos");
+                .WithTags("Vehículos")
+                .RequireAuthorization();
 
             group.MapPost("/", CreateVehiculo)
                 .WithName("CreateVehiculo");
