@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApiNet.Application.DTOs.Alquiler;
-using WebApiNet.Application.DTOs.Common;
 using WebApiNet.Core.Interfaces;
-using WebApiNet.Shared.Constants;
+using WebApiNet.Presentation.Constants;
+using WebApiNet.Shared.DTOs.Alquiler;
+using WebApiNet.Shared.DTOs.Common;
 
 namespace WebApiNet.Controllers
 {

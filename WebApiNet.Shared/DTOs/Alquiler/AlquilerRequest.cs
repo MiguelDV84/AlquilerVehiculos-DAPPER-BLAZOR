@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WebApiNet.Application.DTOs.Alquiler
+namespace WebApiNet.Shared.DTOs.Alquiler
 {
     public class AlquilerRequest : IValidatableObject
     {

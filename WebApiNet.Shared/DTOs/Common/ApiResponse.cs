@@ -1,4 +1,4 @@
-﻿namespace WebApiNet.Application.DTOs.Common
+﻿namespace WebApiNet.Shared.DTOs.Common
 {
     public class ApiResponse<T>
     {

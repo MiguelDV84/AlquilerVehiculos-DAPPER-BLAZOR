@@ -1,11 +1,14 @@
 ﻿@page "/catalogo"
 @rendermode InteractiveServer
+@using AlquilerVehiculosWeb.Shared
+@using WebApiNet.Shared.DTOs.Common
+@using WebApiNet.Shared.DTOs.Vehiculo
+@using WebApiNet.Shared.Enums
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-
-<PageTitle>Nuestra Flota</PageTitle>
+<PageTitle>Gestión de Catálogo</PageTitle>
 
 <div class="row mb-4">
     <div class="col-md-6">
@@ -116,12 +119,11 @@
 
 @code {
     // Usamos listaDeVehiculo para evitar conflictos con el nombre de la página
-    private List<Vehiculo>? listaDeVehiculo;
+    private List<VehiculoResponse>? listaDeVehiculo;
     private string textoBusqueda = ""; // Variable para el buscador
-    private string mensajePrueba = "Vehículos Disponibles";
 
     // Esta propiedad se actualiza sola cada vez que escribes
-    private List<Vehiculo>? VehiculoFiltrados =>
+    private List<VehiculoResponse>? VehiculoFiltrados =>
         string.IsNullOrWhiteSpace(textoBusqueda)
             ? listaDeVehiculo
             : listaDeVehiculo?.Where(v =>
@@ -141,18 +143,13 @@
 
     private async Task BorrarVehiculo(string matricula)
     {
-        bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Estás seguro de que quieres borrar el vehículo con matrícula {matricula}? Esta acción no se puede deshacer.");
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Estás seguro de que quieres borrar el vehículo con matrícula {matricula}?");
         if (confirmado)
         {
-            var response = await Http.DeleteAsync($"api/v2/Vehiculo/{matricula}");
-            if (response.IsSuccessStatusCode)
+            var refresh = await Http.GetFromJsonAsync<ApiResponse<List<VehiculoResponse>>>("api/vehiculos");
+            if (refresh != null && refresh.Success)
             {
-                // Refrescamos la lista después de borrar
-                listaDeVehiculo = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/Vehiculo");
-            }
-            else
-            {
-                Console.WriteLine($"Error al borrar el vehículo: {response.ReasonPhrase}");
+                listaDeVehiculo = refresh.Data;
             }
         }
     }
@@ -161,7 +158,11 @@
     {
         try
         {
-            listaDeVehiculo = await Http.GetFromJsonAsync<List<Vehiculo>>("api/v2/Vehiculo");
+            var response = await Http.GetFromJsonAsync<ApiResponse<List<VehiculoResponse>>>("api/vehiculos");
+            if (response != null && response.Success)
+            {
+                listaDeVehiculo = response.Data;
+            }
         }
         catch (Exception ex)
         {

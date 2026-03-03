@@ -1,4 +1,4 @@
-﻿namespace WebApiNet.Shared.Enums
+﻿namespace WebApiNet.Core.Enums
 {
     public enum TipoVehiculo
     {

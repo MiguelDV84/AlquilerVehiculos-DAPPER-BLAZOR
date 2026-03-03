@@ -1,4 +1,4 @@
-﻿namespace WebApiNet.Application.DTOs.Auth
+﻿namespace WebApiNet.Shared.DTOs.Auth
 {
     public class AuthResponse
     {

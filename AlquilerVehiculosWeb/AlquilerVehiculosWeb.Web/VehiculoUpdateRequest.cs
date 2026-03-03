@@ -1,5 +1,4 @@
 ﻿
-using WebApiNet.Core.Enums;
 
 namespace WebApiNet.Dto
 {
@@ -17,4 +16,14 @@ namespace WebApiNet.Dto
 
         public double? LitrosTanque { get; set; }
     }
+}
+
+public enum TipoVehiculo
+{
+    Furgoneta,
+    Camion,
+    Turismo,
+    Deportivo,
+    Monovolumen,
+    Caravana,
 }

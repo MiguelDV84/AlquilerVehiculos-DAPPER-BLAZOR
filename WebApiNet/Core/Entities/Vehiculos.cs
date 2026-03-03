@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using WebApiNet.Core.Enums;
+using WebApiNet.Shared.Enums;
 
 namespace WebApiNet.Core.Entities
 {

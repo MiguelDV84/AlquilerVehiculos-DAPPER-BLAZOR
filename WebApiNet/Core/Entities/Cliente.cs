@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WebApiNet.Core.Enums;
+using WebApiNet.Shared.Enums;
 
 namespace WebApiNet.Core.Entities
 {

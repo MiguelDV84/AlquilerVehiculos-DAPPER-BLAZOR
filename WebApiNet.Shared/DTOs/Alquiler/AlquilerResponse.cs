@@ -1,4 +1,4 @@
-﻿namespace WebApiNet.Application.DTOs.Alquiler
+﻿namespace WebApiNet.Shared.DTOs.Alquiler
 {
     public class AlquilerResponse
     {

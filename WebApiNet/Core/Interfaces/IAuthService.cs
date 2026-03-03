@@ -1,4 +1,5 @@
-﻿using WebApiNet.Application.DTOs.Auth;
+﻿
+using WebApiNet.Shared.DTOs.Auth;
 
 namespace WebApiNet.Core.Interfaces
 {
