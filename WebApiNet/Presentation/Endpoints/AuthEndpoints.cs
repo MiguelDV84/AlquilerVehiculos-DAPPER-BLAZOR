@@ -16,6 +16,9 @@ namespace WebApiNet.Presentation.Endpoints
 
             group.MapPost("/register", Register)
                 .WithName("Register");
+
+            group.MapGet("/users", GetAllUser)
+                .WithName("GetAllUser");
         }
 
         private static async Task<IResult> Login(LoginRequest request, IAuthService service)
@@ -49,6 +52,17 @@ namespace WebApiNet.Presentation.Endpoints
             {
                 Success = true,
                 Message = "Usuario registrado exitosamente",
+                Data = result
+            });
+        }
+
+        public static async Task<IResult> GetAllUser(IAuthService service, int pageNumber = 1, int pageSize = 5)
+        {
+            var result = await service.GetAllUserAync(pageNumber, pageSize);
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Usuarios obtenidos exitosamente",
                 Data = result
             });
         }

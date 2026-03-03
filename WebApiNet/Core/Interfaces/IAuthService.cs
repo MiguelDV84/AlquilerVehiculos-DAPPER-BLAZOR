@@ -1,4 +1,5 @@
-﻿using WebApiNet.Shared.DTOs.Auth;
+﻿using WebApiNet.Infrastructure.Repositories.Paged;
+using WebApiNet.Shared.DTOs.Auth;
 
 namespace WebApiNet.Core.Interfaces
 {
@@ -7,7 +8,7 @@ namespace WebApiNet.Core.Interfaces
         Task<UserResponse> Register(RegisterRequest registerDto);
         Task<AuthResponse> Login(LoginRequest loginDto);
         Task<UserResponse> GetUserAsync();
-        Task<IEnumerable<UserResponse>> GetAllUserAync();
+        Task<PagedResult<UserResponse>> GetAllUserAync(int pageNumber, int pageSize);
         Task<UserResponse> UpdateUserAsync(string id, UpdateUserRequest updateUserDto);
          Task<bool> DeleteUserAsync(string id);
     }

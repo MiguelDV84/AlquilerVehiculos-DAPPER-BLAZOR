@@ -2,6 +2,7 @@
 using System.Data;
 using WebApiNet.Core.Entities;
 using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.Repositories.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 {
@@ -111,5 +112,9 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
             return vehiculo;
         }
 
+        public Task<PagedResult<Vehiculo>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

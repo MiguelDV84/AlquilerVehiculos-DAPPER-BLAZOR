@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using WebApiNet.Core.Entities;
 using WebApiNet.Core.Interfaces;
+using WebApiNet.Infrastructure.Repositories.Paged;
 using WebApiNet.Infrastructure.Repositories.UnitOfWork;
 using WebApiNet.Shared.DTOs.Auth;
 
@@ -33,9 +34,19 @@ namespace WebApiNet.Application.Services
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<UserResponse>> GetAllUserAync()
+        public async Task<PagedResult<UserResponse>> GetAllUserAync(int pageNumber, int pageSize)
         {
-            throw new NotImplementedException();
+            var pagedEntities = await _unitOfWork.Auth.GetPagedAsync(pageNumber, pageSize);
+
+            var pagedResult = new PagedResult<UserResponse>
+            {
+                Items = _mapper.Map<IEnumerable<UserResponse>>(pagedEntities.Items),
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+
+            return pagedResult;
         }
 
         public Task<UserResponse> GetUserAsync()
