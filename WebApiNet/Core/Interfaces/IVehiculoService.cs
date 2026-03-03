@@ -1,5 +1,6 @@
-﻿using WebApiNet.Application.DTOs.Vehiculo;
+﻿
 
+using WebApiNet.Shared.DTOs.Vehiculo;
 
 namespace WebApiNet.Core.Interfaces
 {

@@ -1,4 +1,5 @@
-using WebApiNet.Core.Enums;
+
+using WebApiNet.Shared.Enums;
 
 namespace WebApiNet.Dto
 {

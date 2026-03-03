@@ -1,109 +1,105 @@
 ﻿@page "/nuevo-vehiculo"
+@using WebApiNet.Shared.DTOs.Vehiculo
+@using WebApiNet.Shared.DTOs.Common
 @using WebApiNet.Shared.Enums
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject IJSRuntime JS 
+@inject IJSRuntime JS
 
-<h3>Nuevo Vehiculo</h3>
+<div class="container mt-4">
+    <h3 class="mb-4">Nuevo Vehículo</h3>
 
-<div>
-    <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarVehiculo">
-        <DataAnnotationsValidator />
-        <ValidationSummary class="text-danger small" />
-        <div class="mb-3">
-            <label for="matricula">Matricula:</label>
-            <InputText @bind-Value="nuevoVehiculo.Matricula" class="form-control" />
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarVehiculo">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="alert alert-danger" />
+
+                <div class="mb-3">
+                    <label for="matricula" class="form-label">Matrícula:</label>
+                    <InputText @bind-Value="nuevoVehiculo.Matricula" class="form-control" placeholder="Ej: 1234BBB" />
+                    <small class="form-text text-muted">Formato: 4 números + 3 letras (ej: 1234BBB)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tipovehiculo" class="form-label">Tipo de Vehículo:</label>
+                    <InputSelect @bind-Value="nuevoVehiculo.TipoVehiculo" class="form-select">
+                        <option value="">-- Seleccione un tipo --</option>
+                        @foreach (var tipo in Enum.GetValues<TipoVehiculo>())
+                        {
+                            <option value="@tipo">@tipo</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label for="kilometraje" class="form-label">Kilometraje (km):</label>
+                    <InputNumber @bind-Value="nuevoVehiculo.Kilometraje" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="marca" class="form-label">Marca:</label>
+                    <InputText @bind-Value="nuevoVehiculo.Marca" class="form-control" placeholder="Ej: Toyota" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="modelo" class="form-label">Modelo:</label>
+                    <InputText @bind-Value="nuevoVehiculo.Modelo" class="form-control" placeholder="Ej: Corolla" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="precio" class="form-label">Precio por día:</label>
+                    <InputNumber @bind-Value="nuevoVehiculo.Precio" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="litrostanque" class="form-label">Litros del Tanque:</label>
+                    <InputNumber @bind-Value="nuevoVehiculo.LitrosTanque" class="form-control" />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                </div>
+            </EditForm>
         </div>
-
-        <div class="mb-3">
-            <label for="tipovehiculo">Tipo de Vehículo:</label>
-           
-            <InputSelect @bind-Value="nuevoVehiculo.TipoVehiculo" class="form-control">
-                @foreach (var tipo in Enum.GetValues<TipoVehiculo>())
-                {
-                    <option value="@tipo">@tipo</option>
-                }
-            </InputSelect>
-        </div>
-
-        <div class="mb-3">
-            <label for="kilometraje">Kilometraje (km):</label>
-            <InputNumber @bind-Value="nuevoVehiculo.Kilometraje" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label for="marca">Marca:</label>
-            <InputText @bind-Value="nuevoVehiculo.Marca" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label for="modelo">Modelo:</label>
-            <InputText @bind-Value="nuevoVehiculo.Modelo" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label for="precio">Precio:</label>
-            <InputNumber @bind-Value="nuevoVehiculo.Precio" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label for="litrostanque">Litros del Tanque</label>
-            <InputNumber @bind-Value="nuevoVehiculo.LitrosTanque" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label for="estado">Estado:</label>
-            <InputSelect @bind-Value="nuevoVehiculo.Estado" class="form-control">
-                @foreach (var estado in Enum.GetValues<EstadoVehiculo>())
-                {
-                    <option value="@estado">@estado</option>
-                }
-            </InputSelect>
-        </div>
-
-        <br/>
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-
-    </EditForm>
+    </div>
 </div>
 
 @code {
-    private Vehiculo nuevoVehiculo = new Vehiculo();
+    private VehiculoRequest nuevoVehiculo = new();
 
     private async Task GuardarVehiculo()
     {
         try
         {
-            // Esta línea llama directamente al código de la API
             var response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
 
             if (response.IsSuccessStatusCode)
             {
+                await JS.InvokeVoidAsync("alert", "Vehículo creado exitosamente");
                 Navigation.NavigateTo("/catalogo");
             }
             else
             {
-                await JS.InvokeVoidAsync("alert", "Error al guardar el vehículo. Revisa si la matrícula ya existe.");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Error al guardar: {errorContent}");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error de conexión: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
         }
-        
     }
 
-    private async Task Cancelar()
+    private void Cancelar()
     {
-        // Lanzamos una ventana emergente del navegador
-        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los datos introducidos.");
-
-        if (confirmado)
-        {
-            Navigation.NavigateTo("/catalogo");
-        }
-        // Si pulsa "Cancelar" en la ventana, no hace nada y se queda en el formulario
+        Navigation.NavigateTo("/catalogo");
     }
 }

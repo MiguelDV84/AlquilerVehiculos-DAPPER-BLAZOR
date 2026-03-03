@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using WebApiNet.Application.DTOs.Alquiler;
 using WebApiNet.Core.Entities;
-using WebApiNet.Core.Enums;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Data;
+using WebApiNet.Shared.DTOs.Alquiler;
+using WebApiNet.Shared.Enums;
 
 namespace WebApiNet.Application.Services
 {

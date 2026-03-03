@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
-using WebApiNet.Application.DTOs.Common;
 using WebApiNet.Core.Exceptions;
+using WebApiNet.Shared.DTOs.Common;
 
 namespace WebApiNet.Presentation.Middleware
 {

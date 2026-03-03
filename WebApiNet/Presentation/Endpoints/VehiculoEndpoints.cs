@@ -1,6 +1,6 @@
-﻿using WebApiNet.Application.DTOs.Common;
-using WebApiNet.Application.DTOs.Vehiculo;
-using WebApiNet.Core.Interfaces;
+﻿using WebApiNet.Core.Interfaces;
+using WebApiNet.Shared.DTOs.Common;
+using WebApiNet.Shared.DTOs.Vehiculo;
 
 namespace WebApiNet.Presentation.Endpoints
 {

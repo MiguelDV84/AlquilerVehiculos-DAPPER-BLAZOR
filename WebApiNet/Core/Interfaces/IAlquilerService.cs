@@ -1,5 +1,5 @@
 ﻿
-using WebApiNet.Application.DTOs.Alquiler;
+using WebApiNet.Shared.DTOs.Alquiler;
 
 namespace WebApiNet.Core.Interfaces
 {

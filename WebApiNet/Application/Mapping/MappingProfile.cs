@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using WebApiNet.Application.DTOs.Alquiler;
-using WebApiNet.Application.DTOs.Auth;
-using WebApiNet.Application.DTOs.Vehiculo;
+using Microsoft.AspNetCore.Identity.Data;
 using WebApiNet.Core.Entities;
+using WebApiNet.Shared.DTOs.Alquiler;
+using WebApiNet.Shared.DTOs.Vehiculo;
 
 namespace WebApiNet.Application.Mapping
 {

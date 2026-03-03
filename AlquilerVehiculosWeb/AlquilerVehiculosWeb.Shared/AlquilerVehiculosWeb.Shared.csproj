@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\WebApiNet.Shared\WebApiNet.Shared.csproj" />
-    <ProjectReference Include="..\..\WebApiNet\WebApiNet.csproj" />
   </ItemGroup>
 
 </Project>

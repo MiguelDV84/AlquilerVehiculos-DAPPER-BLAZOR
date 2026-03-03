@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using WebApiNet.Application.DTOs.Vehiculo;
 using WebApiNet.Core.Entities;
 using WebApiNet.Core.Exceptions;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Repositories.UnitOfWork;
+using WebApiNet.Shared.DTOs.Vehiculo;
 
 namespace WebApiNet.Application.Services
 {
