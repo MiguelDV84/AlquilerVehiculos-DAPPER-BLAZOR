@@ -1,4 +1,4 @@
-﻿namespace WebApiNet.Infrastructure.Repositories.Paged
+﻿namespace WebApiNet.Presentation.Paged
 {
     public class PagedResult<T>
     {

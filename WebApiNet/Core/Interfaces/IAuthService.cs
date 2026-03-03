@@ -1,4 +1,4 @@
-﻿using WebApiNet.Infrastructure.Repositories.Paged;
+﻿using WebApiNet.Presentation.Paged;
 using WebApiNet.Shared.DTOs.Auth;
 
 namespace WebApiNet.Core.Interfaces

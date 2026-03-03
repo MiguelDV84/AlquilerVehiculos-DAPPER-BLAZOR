@@ -2,7 +2,7 @@
 using System.Data;
 using WebApiNet.Core.Entities;
 using WebApiNet.Infrastructure.Data;
-using WebApiNet.Infrastructure.Repositories.Paged;
+using WebApiNet.Presentation.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 {

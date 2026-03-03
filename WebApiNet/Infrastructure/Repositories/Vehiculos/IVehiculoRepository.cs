@@ -1,6 +1,6 @@
 ﻿using WebApiNet.Infrastructure.Repositories.Base;
 using WebApiNet.Core.Entities;
-using WebApiNet.Infrastructure.Repositories.Paged;
+using WebApiNet.Presentation.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 {
