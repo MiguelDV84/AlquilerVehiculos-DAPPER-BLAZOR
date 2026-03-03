@@ -1,5 +1,6 @@
 ﻿@page "/vehiculo/{Matricula}"
 @rendermode InteractiveServer
+@using WebApiNet.Application.DTOs.Common
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -115,14 +116,25 @@ else{
 @code {
     [Parameter]
     public String Matricula { get; set; }
-    private Vehiculo vehiculo;
-    
+
+    private Vehiculo? vehiculo;
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamamos al endpoint de detalle que preparó tu compañero
-        vehiculo = await Http.GetFromJsonAsync<Vehiculo>($"api/v2/vehiculos/{Matricula}");
+        try
+        {
+            var response = await Http.GetFromJsonAsync<ApiResponse<Vehiculo>>($"api/vehiculos/{Matricula}");
+
+            if (response != null && response.Success)
+            {
+                vehiculo = response.Data;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar detalles: {ex.Message}");
+        }
     }
 
     private void Volver() => Navigation.NavigateTo("/catalogo");
 }
-
