@@ -14,9 +14,25 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             _context = context;
         }
 
-        public Task<Cliente> AddAsync(Cliente entity)
+        public async Task<Cliente> AddAsync(Cliente cliente)
         {
-            throw new NotImplementedException();
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_insertar_cliente";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_dni", cliente.Dni);
+            parameters.Add("@p_email", cliente.Email);
+            parameters.Add("@p_password_hash", cliente.PasswordHash);
+            parameters.Add("@p_nombre", cliente.Nombre);
+            parameters.Add("@p_role", cliente.Role);
+
+            var result = await connection.ExecuteAsync(
+                procedureName, 
+                parameters, 
+                commandType: CommandType.StoredProcedure
+                );
+
+            return cliente;
         }
 
         public Task<bool> DeleteAsync(string id)

@@ -25,6 +25,7 @@ namespace WebApiNet.Application.Mapping
 
 
             CreateMap<RegisterRequest, Cliente>();
+            CreateMap<Cliente, UserResponse>();
 
             CreateMap<AlquilerRequest, Alquiler>();
             CreateMap<Alquiler, AlquilerResponse>();

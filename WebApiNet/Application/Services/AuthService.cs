@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BCrypt.Net;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -60,7 +61,7 @@ namespace WebApiNet.Application.Services
         {
             var cliente = await _unitOfWork.Auth.GetByIdAsync(loginDto.Email) ?? 
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
-            if (loginDto.Password != cliente.PasswordHash)
+            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password,cliente.PasswordHash))
             {
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
             }
@@ -79,31 +80,23 @@ namespace WebApiNet.Application.Services
             };
         }
 
-        public Task<UserResponse> Register(RegisterRequest registerDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        /*   public async Task<UserResponse> Register(RegisterRequest registerRequest)
+          public async Task<UserResponse> Register(RegisterRequest registerRequest)
            {
-             if(_context.Clientes.Any(c => c.Dni == registerRequest.Dni))
-               {
-                   throw new InvalidOperationException("El DNI ya está registrado");
-               }
+            var clienteExistente = await _unitOfWork.Auth.GetByIdAsync(registerRequest.Dni);
 
-               var cliente = _mapper.Map<Cliente>(registerRequest);
-               cliente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password);
+                if (clienteExistente != null)
+                {
+                     throw new InvalidOperationException("El usuario ya existe");
+            }
 
-               _context.Clientes.Add(cliente);
-               await _context.SaveChangesAsync();
+            var cliente = _mapper.Map<Cliente>(registerRequest);
+            cliente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password);
 
-               return new UserResponse {
-                   Dni = cliente.Dni,
-                   Nombre = cliente.Nombre,
-                   Email = cliente.Email
-               };
-           }
-        */
+            await  _unitOfWork.Auth.AddAsync(cliente);
+
+            return _mapper.Map<UserResponse>(cliente);
+        }
+        
         private object GenerateJwtToken(Cliente cliente)
         {
             var claims = new[]
