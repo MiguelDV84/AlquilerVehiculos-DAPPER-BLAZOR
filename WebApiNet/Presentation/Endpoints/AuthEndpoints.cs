@@ -9,7 +9,7 @@ namespace WebApiNet.Presentation.Endpoints
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/v2/auth")
+            var group = app.MapGroup("/api/auth")
                 .WithTags("Autenticación");
             group.MapPost("/login", Login)
                 .WithName("Login");

@@ -1,5 +1,4 @@
-﻿
-using WebApiNet.Shared.DTOs.Auth;
+﻿using WebApiNet.Shared.DTOs.Auth;
 
 namespace WebApiNet.Core.Interfaces
 {
@@ -9,5 +8,7 @@ namespace WebApiNet.Core.Interfaces
         Task<AuthResponse> Login(LoginRequest loginDto);
         Task<UserResponse> GetUserAsync();
         Task<IEnumerable<UserResponse>> GetAllUserAync();
+        Task<UserResponse> UpdateUserAsync(string id, UpdateUserRequest updateUserDto);
+         Task<bool> DeleteUserAsync(string id);
     }
 }

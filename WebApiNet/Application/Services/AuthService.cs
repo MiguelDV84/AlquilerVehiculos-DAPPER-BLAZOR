@@ -28,6 +28,11 @@ namespace WebApiNet.Application.Services
 
         }
 
+        public Task<bool> DeleteUserAsync(string id)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<UserResponse>> GetAllUserAync()
         {
             throw new NotImplementedException();
@@ -79,6 +84,11 @@ namespace WebApiNet.Application.Services
         }
 
         public Task<UserResponse> Register(RegisterRequest registerDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<UserResponse> UpdateUserAsync(string id, UpdateUserRequest updateUserDto)
         {
             throw new NotImplementedException();
         }

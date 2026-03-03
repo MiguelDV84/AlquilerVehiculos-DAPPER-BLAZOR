@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using MySqlX.XDevAPI;
 using System.Data;
 using WebApiNet.Core.Entities;
 using WebApiNet.Infrastructure.Data;
@@ -14,9 +15,46 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             _context = context;
         }
 
-        public Task<Cliente> AddAsync(Cliente entity)
+        public async Task<Cliente> UpdateAsync(string id, Cliente cliente)
         {
-            throw new NotImplementedException();
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_update_cliente";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_dni", cliente.Dni);
+            parameters.Add("@p_email", cliente.Email);
+            parameters.Add("@p_password_hash", cliente.PasswordHash);
+            parameters.Add("@p_nombre", cliente.Nombre);
+
+
+            var result = await connection.ExecuteAsync(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return cliente;
+        }
+
+        public async Task<Cliente> AddAsync(Cliente cliente)
+        {
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_insertar_cliente";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_dni", cliente.Dni);
+            parameters.Add("@p_email", cliente.Email);
+            parameters.Add("@p_password_hash", cliente.PasswordHash);
+            parameters.Add("@p_nombre", cliente.Nombre);
+            parameters.Add("@p_role", cliente.Role);
+
+            var result = await connection.ExecuteAsync(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return cliente;
         }
 
         public Task<bool> DeleteAsync(string id)
@@ -38,17 +76,14 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             parameters.Add("@p_email_cliente", id);
 
             var result = await connection.QueryFirstOrDefaultAsync<Cliente>(
-                procedureName, 
-                parameters, 
+                procedureName,
+                parameters,
                 commandType: CommandType.StoredProcedure
                 );
 
             return result;
         }
 
-        public Task<Cliente> UpdateAsync(string id, Cliente entity)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }
