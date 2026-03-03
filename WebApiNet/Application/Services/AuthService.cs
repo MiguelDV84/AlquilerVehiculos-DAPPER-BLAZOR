@@ -29,9 +29,17 @@ namespace WebApiNet.Application.Services
 
         }
 
-        public Task<bool> DeleteUserAsync(string id)
+        public async Task<bool> DeleteUserAsync()
         {
-            throw new NotImplementedException();
+            var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                throw new KeyNotFoundException("No se ha encontrado DNI.");
+
+            var cliente = _unitOfWork.Auth.GetByIdAsync(dni).Result ??
+                throw new KeyNotFoundException("Usuario no encontrado");
+
+            var succes = await _unitOfWork.Auth.DeleteAsync(cliente.Dni);
+
+            return succes;
         }
 
         public async Task<PagedResult<UserResponse>> GetAllUserAync(int pageNumber, int pageSize)
@@ -73,7 +81,8 @@ namespace WebApiNet.Application.Services
 
         public async Task<AuthResponse> Login(LoginRequest loginDto)
         {
-            var cliente = await _unitOfWork.Auth.GetByIdAsync(loginDto.Email) ??
+
+            var cliente = await _unitOfWork.Auth.GetByEmailAsync(loginDto.Email) ??
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, cliente.PasswordHash))
             {
@@ -111,9 +120,18 @@ namespace WebApiNet.Application.Services
             return _mapper.Map<UserResponse>(cliente);
         }
 
-        public Task<UserResponse> UpdateUserAsync(string id, UpdateUserRequest updateUserDto)
+        public async Task<UserResponse> UpdateUserAsync(UpdateUserRequest updateUserDto)
         {
-            throw new NotImplementedException();
+            var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                throw new KeyNotFoundException("No se ha encontrado DNI.");
+
+            var cliente = _unitOfWork.Auth.GetByIdAsync(dni).Result ??
+                throw new KeyNotFoundException("Usuario no encontrado");
+
+            _mapper.Map(updateUserDto, cliente);
+            await _unitOfWork.Auth.UpdateAsync(dni, cliente);
+
+            return _mapper.Map<UserResponse>(cliente);
         }
 
         private object GenerateJwtToken(Cliente cliente)

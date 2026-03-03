@@ -9,7 +9,7 @@ namespace WebApiNet.Core.Interfaces
         Task<AuthResponse> Login(LoginRequest loginDto);
         Task<UserResponse> GetUserAsync();
         Task<PagedResult<UserResponse>> GetAllUserAync(int pageNumber, int pageSize);
-        Task<UserResponse> UpdateUserAsync(string id, UpdateUserRequest updateUserDto);
-         Task<bool> DeleteUserAsync(string id);
+        Task<UserResponse> UpdateUserAsync(UpdateUserRequest updateUserDto);
+         Task<bool> DeleteUserAsync();
     }
 }

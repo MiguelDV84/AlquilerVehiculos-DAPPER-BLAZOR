@@ -57,12 +57,12 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             return cliente;
         }
 
-        public async Task<bool> DeleteAsync(string id)
+        public async Task<bool> DeleteAsync(string dni)
         {
             using var connection = _context.CreateConnection();
             string procedureName = "sp_delete_cliente";
             var parameters = new DynamicParameters();
-            parameters.Add("@p_dni", id);
+            parameters.Add("@p_dni", dni);
 
             int filasAfectadas = await connection.ExecuteAsync(
                 procedureName,
@@ -84,7 +84,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
             string procedureName = "sp_obtener_cliente_dni";
             var parameters = new DynamicParameters();
-            parameters.Add("@p_email_cliente", id);
+            parameters.Add("@p_dni", id);
 
             var result = await connection.QueryFirstOrDefaultAsync<Cliente>(
                 procedureName,
@@ -123,6 +123,23 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
                     PageSize = pageSize
                 };
             }
+        }
+
+        public async Task<Cliente> GetByEmailAsync(string email)
+        {
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_obtener_cliente_email";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_email_cliente", email);
+
+            var result = await connection.QueryFirstOrDefaultAsync<Cliente>(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return result;
         }
     }
 }

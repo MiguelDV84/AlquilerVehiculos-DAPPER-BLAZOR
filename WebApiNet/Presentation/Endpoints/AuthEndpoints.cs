@@ -18,7 +18,16 @@ namespace WebApiNet.Presentation.Endpoints
                 .WithName("Register");
 
             group.MapGet("/users", GetAllUser)
-                .WithName("GetAllUser");
+                .WithName("GetAllUser")
+                .RequireAuthorization();
+
+            group.MapDelete("/users", DeleteUser)
+                .WithName("DeleteUser")
+                .RequireAuthorization();
+
+            group.MapPut("/users", UpdateUser)
+                .WithName("UpdateUser")
+                .RequireAuthorization();
         }
 
         private static async Task<IResult> Login(LoginRequest request, IAuthService service)
@@ -63,6 +72,46 @@ namespace WebApiNet.Presentation.Endpoints
             {
                 Success = true,
                 Message = "Usuarios obtenidos exitosamente",
+                Data = result
+            });
+        }
+
+        private static async Task<IResult> DeleteUser(IAuthService service)
+        {
+            var result = await service.DeleteUserAsync();
+            if (!result)
+            {
+                return Results.BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Error al eliminar el usuario",
+                    Data = null
+                });
+            }
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Usuario eliminado exitosamente",
+                Data = null
+            });
+        }
+
+        private static async Task<IResult> UpdateUser(UpdateUserRequest request, IAuthService service)
+        {
+            var result = await service.UpdateUserAsync(request);
+            if (result == null)
+            {
+                return Results.BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Error al actualizar el usuario",
+                    Data = null
+                });
+            }
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Usuario actualizado exitosamente",
                 Data = result
             });
         }
