@@ -1,8 +1,8 @@
 ﻿using Dapper;
-using MySqlX.XDevAPI;
 using System.Data;
 using WebApiNet.Core.Entities;
 using WebApiNet.Infrastructure.Data;
+using WebApiNet.Presentation.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.Auth
 {
@@ -57,9 +57,20 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             return cliente;
         }
 
-        public Task<bool> DeleteAsync(string id)
+        public async Task<bool> DeleteAsync(string dni)
         {
-            throw new NotImplementedException();
+            using var connection = _context.CreateConnection();
+            string procedureName = "sp_delete_cliente";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_dni", dni);
+
+            int filasAfectadas = await connection.ExecuteAsync(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return filasAfectadas > 0;
         }
 
         public Task<IReadOnlyList<Cliente>> GetAllAsync()
@@ -73,7 +84,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
             string procedureName = "sp_obtener_cliente_dni";
             var parameters = new DynamicParameters();
-            parameters.Add("@p_email_cliente", id);
+            parameters.Add("@p_dni", id);
 
             var result = await connection.QueryFirstOrDefaultAsync<Cliente>(
                 procedureName,
@@ -84,6 +95,51 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             return result;
         }
 
+        public async Task<PagedResult<Cliente>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            using var connection = _context.CreateConnection();
+            string procedureName = "sp_obtener_clientes";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_page_number", pageNumber);
+            parameters.Add("@p_page_size", pageSize);
 
+            using (var result = await connection.QueryMultipleAsync(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+            ))
+            {
+                // 1. Leemos el primer SELECT (el COUNT)
+                int totalCount = await result.ReadFirstAsync<int>();
+
+                // 2. Leemos el segundo SELECT (los DATOS)
+                var clientes = (await result.ReadAsync<Cliente>()).ToList();
+
+                return new PagedResult<Cliente>
+                {
+                    Items = clientes,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
+        }
+
+        public async Task<Cliente> GetByEmailAsync(string email)
+        {
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_obtener_cliente_email";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_email_cliente", email);
+
+            var result = await connection.QueryFirstOrDefaultAsync<Cliente>(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return result;
+        }
     }
 }
