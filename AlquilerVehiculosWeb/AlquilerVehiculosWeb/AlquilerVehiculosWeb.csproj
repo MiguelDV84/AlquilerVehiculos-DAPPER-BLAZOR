@@ -69,6 +69,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\WebApiNet.Shared\WebApiNet.Shared.csproj" />
     <ProjectReference Include="..\AlquilerVehiculosWeb.Shared\AlquilerVehiculosWeb.Shared.csproj" />
   </ItemGroup>
 
