@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApiNet.Application.DTOs.Auth;
 using WebApiNet.Application.DTOs.Common;
 using WebApiNet.Core.Interfaces;
-using WebApiNet.Shared.Constants;
+using WebApiNet.Presentation.Constants;
 
 namespace WebApiNet.Controllers
 {

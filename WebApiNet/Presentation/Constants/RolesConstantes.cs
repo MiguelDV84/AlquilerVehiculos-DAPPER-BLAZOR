@@ -1,4 +1,4 @@
-﻿namespace WebApiNet.Shared.Constants
+﻿namespace WebApiNet.Presentation.Constants
 {
     public static class RolesConstantes
     {

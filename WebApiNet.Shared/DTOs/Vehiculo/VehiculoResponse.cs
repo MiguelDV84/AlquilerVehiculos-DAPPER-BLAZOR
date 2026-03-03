@@ -1,6 +1,7 @@
-﻿using WebApiNet.Application.DTOs.Alquiler;
+﻿
+using WebApiNet.Shared.DTOs.Alquiler;
 
-namespace WebApiNet.Application.DTOs.Vehiculo
+namespace WebApiNet.Shared.DTOs.Vehiculo
 {
     public class VehiculoResponse
     {

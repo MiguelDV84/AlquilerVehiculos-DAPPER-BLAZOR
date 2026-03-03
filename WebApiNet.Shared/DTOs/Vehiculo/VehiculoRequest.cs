@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WebApiNet.Core.Enums;
+using WebApiNet.Shared.Enums;
 
-namespace WebApiNet.Application.DTOs.Vehiculo
+namespace WebApiNet.Shared.DTOs.Vehiculo
 {
     public class VehiculoRequest
     {
