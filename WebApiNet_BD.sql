@@ -58,7 +58,35 @@ CREATE TABLE IF NOT EXISTS `Clientes` (
   PRIMARY KEY (`Dni`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.Clientes: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.Clientes: ~9 rows (aproximadamente)
+REPLACE INTO `Clientes` (`Dni`, `Email`, `PasswordHash`, `Nombre`, `Role`) VALUES
+	('01248796T', 'rodrigo@test.com', '$2a$11$OJuWzUW6MnBIcvyCqxWZb.H9b/3pfH23Jpiq9WieaOZ6T99zh0Uf6', 'Rodrigo', 1),
+	('06241547K', 'maria@test.com', '$2a$11$B0bRVnFscJZDD1eaDVm4Keff7viP2Pa6NfkR.zcsrMHhaQg6qsBiu', 'Maria', 1),
+	('06280146L', 'miguel@test.com', '1234', 'Miguel', 0),
+	('06280457K', 'dolores@test.com', '$2a$11$eU5F./P2xQxvD0zn3iKolOxeOlAZmplCz35aaqRgCKKAkmlb4mGOi', 'Dolores', 1),
+	('47474123N', 'pilar@test.com', '$2a$11$SIlvcla2GVNYcTq0MLYEE.oyzWl6YYc.HZmrkwu8wiFdt2wyLG50.', 'Pilar', 1),
+	('54682485O', 'alberto@test.com', '$2a$11$5pHPfJ1/w9cIJlUAPBSi8ucDDKf3ajW4halLbwNrxreVx0X7lJUnW', 'Alberto', 1),
+	('87454787L', 'rufino@test.com', '$2a$11$o7A91mrG2u8oTOhJOfWjRu57XNtAGQa6LcnO/pJI2c.8V5sRlVR2.', 'Rufino', 1),
+	('87548745H', 'raul@test.com', '$2a$11$pPS.Wh21AIDlFRCjxpScWegsGTcZP9FYTT6fukzjtEFuTPH03RyLK', 'Raul', 1),
+	('98547541P', 'Carlos@test.com', '$2a$11$JCbvyW5WeBjWscaWs08KpuAI0TotcPZP2.GZaoIo30PMLmH.bIkIu', 'Carlos', 1);
+
+-- Volcando estructura para procedimiento WebApiNet.so_update_cliente
+DELIMITER //
+CREATE PROCEDURE `so_update_cliente`(
+	IN `p_email` VARCHAR(50),
+	IN `p_password` VARCHAR(50),
+	IN `p_dni` VARCHAR(50),
+	IN `p_nombre` VARCHAR(50)
+)
+BEGIN
+UPDATE Clientes 
+	SET 
+		Email = p_email,
+		PasswordHas = p_password,
+		Nombre = p_nombre
+	WHERE Dni = p_dni;
+END//
+DELIMITER ;
 
 -- Volcando estructura para procedimiento WebApiNet.sp_delete_vehiculo
 DELIMITER //
@@ -68,6 +96,33 @@ CREATE PROCEDURE `sp_delete_vehiculo`(
 BEGIN
 	DELETE FROM Vehiculos
 	WHERE Matricula = p_matricula;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_insertar_cliente
+DELIMITER //
+CREATE PROCEDURE `sp_insertar_cliente`(
+	IN `p_dni` VARCHAR(50),
+	IN `p_email` VARCHAR(50),
+	IN `p_password_hash` VARCHAR(255),
+	IN `p_nombre` VARCHAR(50),
+	IN `p_role` INT
+)
+BEGIN
+INSERT INTO Clientes (
+    Dni,
+    Email,
+    PasswordHash,
+    Nombre,
+    Role
+)
+VALUES (
+	p_dni,
+	p_email,
+	p_password_hash,
+	p_nombre,
+	p_role
+);
 END//
 DELIMITER ;
 
@@ -104,6 +159,17 @@ VALUES (
     p_litros_tanque, 
     p_estado
 );
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_cliente_dni
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_cliente_dni`(
+	IN `p_email_cliente` VARCHAR(50)
+)
+BEGIN
+SELECT * FROM Clientes
+WHERE Email = p_email_cliente;
 END//
 DELIMITER ;
 
@@ -165,9 +231,9 @@ CREATE TABLE IF NOT EXISTS `Vehiculos` (
   PRIMARY KEY (`Matricula`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.Vehiculos: ~50 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.Vehiculos: ~54 rows (aproximadamente)
 REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `Modelo`, `Precio`, `LitrosTanque`, `Estado`) VALUES
-	('0001FST', 3, 555000, 'Porsche', '911 Carrera', 120000.00, 64, 0),
+	('0001FST', 0, 555000, 'Porsche', '911 Carrera', 200.00, 70, 0),
 	('0007BND', 3, 1200, 'Aston Martin', 'Vantage', 155000.00, 73, 0),
 	('1111CAM', 5, 25000, 'Fiat', 'Ducato Camper', 55000.00, 90, 0),
 	('1111LPK', 2, 100000, 'Audi', 'A5', 150.00, 64, 0),
@@ -179,11 +245,13 @@ REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `
 	('3344ASD', 1, 500000, 'MAN', 'TGX', 45000.00, 500, 0),
 	('4433FAM', 4, 65000, 'Chrysler', 'Pacifica', 35000.00, 70, 0),
 	('4455VBN', 0, 12000, 'Peugeot', 'Partner', 21500.00, 60, 0),
+	('4578JKL', 1, 120000, 'Toyota', 'Corolla', 120.00, 70, 0),
+	('4612GJX', 2, 100000, 'Opel', 'Astra', 145.00, 55, 0),
 	('5544PLK', 2, 89000, 'Volkswagen', 'Golf', 12000.00, 55, 0),
 	('5566GHT', 4, 98000, 'Ford', 'S-Max', 14000.00, 65, 0),
 	('6677RTY', 1, 350000, 'Volvo', 'FH16', 85000.00, 400, 0),
 	('7845JKS', 2, 12500, 'Toyota', 'Corolla', 22000.00, 50, 0),
-	('7845POL', 2, 100000, 'Honda', 'Civic', 145.00, 55, 0),
+	('7845POL', 2, 200000, 'Toyota', 'Auris', 130.00, 68, 0),
 	('8812LMN', 0, 30000, 'Citroen', 'Berlingo', 19000.00, 60, 0),
 	('9001AAA', 2, 1000, 'Ford', 'Fiesta', 17000.00, 42, 0),
 	('9002BBB', 2, 2000, 'Kia', 'Ceed', 19500.00, 50, 0),
@@ -194,7 +262,6 @@ REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `
 	('9007GGG', 2, 45600, 'Honda', 'Civic', 21000.00, 46, 0),
 	('9008HHH', 0, 67000, 'Fiat', 'Doblo', 13000.00, 60, 0),
 	('9009III', 4, 34000, 'Renault', 'Espace', 29000.00, 68, 0),
-	('9010JJJ', 2, 12000, 'Dacia', 'Sandero', 11000.00, 50, 0),
 	('9011KKK', 1, 220000, 'DAF', 'XF', 54000.00, 420, 0),
 	('9012LLL', 3, 4000, 'Nissan', 'GT-R', 105000.00, 74, 0),
 	('9013MMM', 2, 15000, 'Skoda', 'Octavia', 26000.00, 50, 0),
@@ -218,8 +285,7 @@ REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `
 	('9031I5J', 3, 100, 'Bugatti', 'Chiron', 3000000.00, 100, 0),
 	('9900UIO', 1, 120000, 'Scania', 'R500', 92000.00, 450, 0),
 	('9988HHH', 2, 0, 'Hyundai', 'i30', 21000.00, 45, 0),
-	('9999SPD', 3, 15000, 'Audi', 'R8', 110000.00, 83, 0),
-	('M4567ZZ', 0, 150000, 'Renault', 'Kangoo', 9500.00, 60, 0);
+	('9999SPD', 3, 15000, 'Audi', 'R8', 110000.00, 83, 0);
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
