@@ -96,6 +96,11 @@
                                 <button class="btn btn-info btn-sm text-white" @onclick="() => VerDetalles(v.Matricula)">
                                     <i class="bi bi-eye"></i> Ver Ficha
                                 </button>
+
+                                <button class="btn btn-warning btn-sm text-white" @onclick="() => EditarVehiculo(v.Matricula)">
+                                    <i class="bi bi-pencil"></i> Editar Ficha
+                                </button>
+                                
                                 <button class="btn btn-danger btn-sm text-white" @onclick="() => BorrarVehiculo(v.Matricula)">
                                     <i class="bi bi-trash"></i> Borrar Ficha
                                 </button>
@@ -136,6 +141,11 @@
         Navigation.NavigateTo($"/vehiculo/{matricula}");
     }
 
+    private void EditarVehiculo(string matricula)
+    {
+        Navigation.NavigateTo($"/editar-vehiculo/{matricula}");
+    }
+
     private void IrANuevoVehiculo()
     {
         Navigation.NavigateTo("/nuevo-vehiculo");
@@ -143,13 +153,37 @@
 
     private async Task BorrarVehiculo(string matricula)
     {
+        // 1. Pedimos confirmación al usuario
         bool confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Estás seguro de que quieres borrar el vehículo con matrícula {matricula}?");
+
         if (confirmado)
         {
-            var refresh = await Http.GetFromJsonAsync<ApiResponse<List<VehiculoResponse>>>("api/vehiculos");
-            if (refresh != null && refresh.Success)
+            try
             {
-                listaDeVehiculo = refresh.Data;
+                // 2. HACER LA LLAMADA DELETE A LA API (Esto es lo que faltaba)
+                // Según tu documentación: DELETE /api/vehiculos/{matricula}
+                var responseDelete = await Http.DeleteAsync($"api/vehiculos/{matricula}");
+
+                if (responseDelete.IsSuccessStatusCode)
+                {
+                    // 3. Si la API borró con éxito, refrescamos la lista localmente
+                    var refresh = await Http.GetFromJsonAsync<ApiResponse<List<VehiculoResponse>>>("api/vehiculos");
+
+                    if (refresh != null && refresh.Success)
+                    {
+                        listaDeVehiculo = refresh.Data;
+                        // Opcional: podrías mostrar una alerta de éxito aquí
+                    }
+                }
+                else
+                {
+                    // Manejo de errores (por ejemplo, si tiene alquileres asociados devuelve 409)
+                    await JS.InvokeVoidAsync("alert", "No se pudo eliminar el vehículo. Puede que tenga alquileres asociados.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al borrar: {ex.Message}");
             }
         }
     }
