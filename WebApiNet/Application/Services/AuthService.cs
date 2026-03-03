@@ -19,7 +19,7 @@ namespace WebApiNet.Application.Services
 
 
 
-        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration config )
+        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -62,9 +62,9 @@ namespace WebApiNet.Application.Services
 
         public async Task<AuthResponse> Login(LoginRequest loginDto)
         {
-            var cliente = await _unitOfWork.Auth.GetByIdAsync(loginDto.Email) ?? 
+            var cliente = await _unitOfWork.Auth.GetByIdAsync(loginDto.Email) ??
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
-            if (loginDto.Password != cliente.PasswordHash)
+            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, cliente.PasswordHash))
             {
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
             }
@@ -83,9 +83,21 @@ namespace WebApiNet.Application.Services
             };
         }
 
-        public Task<UserResponse> Register(RegisterRequest registerDto)
+        public async Task<UserResponse> Register(RegisterRequest registerRequest)
         {
-            throw new NotImplementedException();
+            var clienteExistente = await _unitOfWork.Auth.GetByIdAsync(registerRequest.Dni);
+
+            if (clienteExistente != null)
+            {
+                throw new InvalidOperationException("El usuario ya existe");
+            }
+
+            var cliente = _mapper.Map<Cliente>(registerRequest);
+            cliente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password);
+
+            await _unitOfWork.Auth.AddAsync(cliente);
+
+            return _mapper.Map<UserResponse>(cliente);
         }
 
         public Task<UserResponse> UpdateUserAsync(string id, UpdateUserRequest updateUserDto)
@@ -93,26 +105,6 @@ namespace WebApiNet.Application.Services
             throw new NotImplementedException();
         }
 
-        /*   public async Task<UserResponse> Register(RegisterRequest registerRequest)
-           {
-             if(_context.Clientes.Any(c => c.Dni == registerRequest.Dni))
-               {
-                   throw new InvalidOperationException("El DNI ya está registrado");
-               }
-
-               var cliente = _mapper.Map<Cliente>(registerRequest);
-               cliente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password);
-
-               _context.Clientes.Add(cliente);
-               await _context.SaveChangesAsync();
-
-               return new UserResponse {
-                   Dni = cliente.Dni,
-                   Nombre = cliente.Nombre,
-                   Email = cliente.Email
-               };
-           }
-        */
         private object GenerateJwtToken(Cliente cliente)
         {
             var claims = new[]
