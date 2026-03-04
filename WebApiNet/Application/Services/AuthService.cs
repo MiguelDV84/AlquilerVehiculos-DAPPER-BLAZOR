@@ -34,7 +34,7 @@ namespace WebApiNet.Application.Services
             var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                 throw new KeyNotFoundException("No se ha encontrado DNI.");
 
-            var cliente = _unitOfWork.Auth.GetByIdAsync(dni).Result ??
+            var cliente =  _unitOfWork.Auth.GetByIdAsync(dni).Result ??
                 throw new KeyNotFoundException("Usuario no encontrado");
 
             var succes = await _unitOfWork.Auth.DeleteAsync(cliente.Dni);
@@ -57,9 +57,15 @@ namespace WebApiNet.Application.Services
             return pagedResult;
         }
 
-        public Task<UserResponse> GetUserAsync()
+        public async Task<UserResponse> GetUserAsync()
         {
-            throw new NotImplementedException();
+            var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                throw new KeyNotFoundException("No se ha encontrado DNI.");
+
+            var cliente = _unitOfWork.Auth.GetByIdAsync(dni).Result ??
+                throw new KeyNotFoundException("Usuario no encontrado");
+
+            return _mapper.Map<UserResponse>(cliente);
         }
 
         /*    public Task<UserResponse> GetUserAsync()

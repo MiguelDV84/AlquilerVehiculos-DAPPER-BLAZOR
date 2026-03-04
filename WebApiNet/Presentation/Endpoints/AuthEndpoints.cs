@@ -17,15 +17,19 @@ namespace WebApiNet.Presentation.Endpoints
             group.MapPost("/register", Register)
                 .WithName("Register");
 
+            group.MapGet("/user", GetUser)
+                .WithName("GetUser")
+                .RequireAuthorization();
+
             group.MapGet("/users", GetAllUser)
                 .WithName("GetAllUser")
                 .RequireAuthorization();
 
-            group.MapDelete("/users", DeleteUser)
+            group.MapDelete("/user", DeleteUser)
                 .WithName("DeleteUser")
                 .RequireAuthorization();
 
-            group.MapPut("/users", UpdateUser)
+            group.MapPut("/user", UpdateUser)
                 .WithName("UpdateUser")
                 .RequireAuthorization();
         }
@@ -112,6 +116,26 @@ namespace WebApiNet.Presentation.Endpoints
             {
                 Success = true,
                 Message = "Usuario actualizado exitosamente",
+                Data = result
+            });
+        }
+
+        private static async Task<IResult> GetUser(IAuthService service)
+        {
+            var result = await service.GetUserAsync();
+            if (result == null)
+            {
+                return Results.NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Usuario no encontrado",
+                    Data = null
+                });
+            }
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Usuario obtenido exitosamente",
                 Data = result
             });
         }
