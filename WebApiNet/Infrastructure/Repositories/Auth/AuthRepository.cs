@@ -95,7 +95,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             return result;
         }
 
-        public async Task<PagedResult<Cliente>> GetPagedAsync(int pageNumber, int pageSize)
+        public async Task<PagedResult<Cliente>> GetAllAsync(int pageNumber, int pageSize)
         {
             using var connection = _context.CreateConnection();
             string procedureName = "sp_obtener_clientes";
