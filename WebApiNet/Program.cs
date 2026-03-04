@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using MySqlConnector;
 using System.Data;
 using System.Text;
-using WebApiNet.Application.Mapping;
+using WebApiNet.Applicacion.DependencyInjection;
 using WebApiNet.Application.Services;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Data;
@@ -15,20 +15,14 @@ using WebApiNet.Presentation.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddInfrastructure();
+builder.Services
+    .AddInfrastructure()
+    .AddApplication()
+    .AddHttpContextAccessor();
 
 builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
-builder.Services.AddScoped<IVehiculoService, VehiculoService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAlquilerService, AlquilerService>();
 
-
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddProfile<MappingProfile>();
-});
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
