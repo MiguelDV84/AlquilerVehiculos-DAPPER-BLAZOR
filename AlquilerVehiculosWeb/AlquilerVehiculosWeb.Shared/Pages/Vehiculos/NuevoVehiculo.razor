@@ -7,83 +7,132 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<div class="container mt-4">
-    <h3 class="mb-4">Nuevo Vehículo</h3>
+@if (!isAuthorized)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Verificando autorización...</p>
+    </div>
+}
+else
+{
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarVehiculo">
-                <DataAnnotationsValidator />
-                <ValidationSummary class="alert alert-danger" />
+    <div class="container mt-4">
+        <h3 class="mb-4">Nuevo Vehículo</h3>
 
-                <div class="mb-3">
-                    <label for="matricula" class="form-label">Matrícula:</label>
-                    <InputText @bind-Value="nuevoVehiculo.Matricula" class="form-control" placeholder="Ej: 1234BBB" />
-                    <small class="form-text text-muted">Formato: 4 números + 3 letras (ej: 1234BBB)</small>
-                </div>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarVehiculo">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="alert alert-danger" />
 
-                <div class="mb-3">
-                    <label for="tipovehiculo" class="form-label">Tipo de Vehículo:</label>
-                    <InputSelect @bind-Value="nuevoVehiculo.TipoVehiculo" class="form-select">
-                        <option value="">-- Seleccione un tipo --</option>
-                        @foreach (var tipo in Enum.GetValues<TipoVehiculo>())
-                        {
-                            <option value="@tipo">@tipo</option>
-                        }
-                    </InputSelect>
-                </div>
+                    <div class="mb-3">
+                        <label for="matricula" class="form-label">Matrícula:</label>
+                        <InputText @bind-Value="nuevoVehiculo.Matricula" class="form-control" placeholder="Ej: 1234BBB" />
+                        <small class="form-text text-muted">Formato: 4 números + 3 letras (ej: 1234BBB)</small>
+                    </div>
 
-                <div class="mb-3">
-                    <label for="kilometraje" class="form-label">Kilometraje (km):</label>
-                    <InputNumber @bind-Value="nuevoVehiculo.Kilometraje" class="form-control" />
-                </div>
+                    <div class="mb-3">
+                        <label for="tipovehiculo" class="form-label">Tipo de Vehículo:</label>
+                        <InputSelect @bind-Value="nuevoVehiculo.TipoVehiculo" class="form-select">
+                            <option value="">-- Seleccione un tipo --</option>
+                            @foreach (var tipo in Enum.GetValues<TipoVehiculo>())
+                            {
+                                <option value="@tipo">@tipo</option>
+                            }
+                        </InputSelect>
+                    </div>
 
-                <div class="mb-3">
-                    <label for="marca" class="form-label">Marca:</label>
-                    <InputText @bind-Value="nuevoVehiculo.Marca" class="form-control" placeholder="Ej: Toyota" />
-                </div>
+                    <div class="mb-3">
+                        <label for="kilometraje" class="form-label">Kilometraje (km):</label>
+                        <InputNumber @bind-Value="nuevoVehiculo.Kilometraje" class="form-control" />
+                    </div>
 
-                <div class="mb-3">
-                    <label for="modelo" class="form-label">Modelo:</label>
-                    <InputText @bind-Value="nuevoVehiculo.Modelo" class="form-control" placeholder="Ej: Corolla" />
-                </div>
+                    <div class="mb-3">
+                        <label for="marca" class="form-label">Marca:</label>
+                        <InputText @bind-Value="nuevoVehiculo.Marca" class="form-control" placeholder="Ej: Toyota" />
+                    </div>
 
-                <div class="mb-3">
-                    <label for="precio" class="form-label">Precio por día:</label>
-                    <InputNumber @bind-Value="nuevoVehiculo.Precio" class="form-control" />
-                </div>
+                    <div class="mb-3">
+                        <label for="modelo" class="form-label">Modelo:</label>
+                        <InputText @bind-Value="nuevoVehiculo.Modelo" class="form-control" placeholder="Ej: Corolla" />
+                    </div>
 
-                <div class="mb-3">
-                    <label for="litrostanque" class="form-label">Litros del Tanque:</label>
-                    <InputNumber @bind-Value="nuevoVehiculo.LitrosTanque" class="form-control" />
-                </div>
+                    <div class="mb-3">
+                        <label for="precio" class="form-label">Precio por día:</label>
+                        <InputNumber @bind-Value="nuevoVehiculo.Precio" class="form-control" />
+                    </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Guardar
-                    </button>
-                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </button>
-                </div>
-            </EditForm>
+                    <div class="mb-3">
+                        <label for="litrostanque" class="form-label">Litros del Tanque:</label>
+                        <InputNumber @bind-Value="nuevoVehiculo.LitrosTanque" class="form-control" />
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="Cancelar">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
         </div>
     </div>
-</div>
-
+}
 @code {
+    private bool isAuthorized = false;
+
     private VehiculoRequest nuevoVehiculo = new();
+
+    // Se ejecuta tras cargar la página en el navegador (único sitio seguro para usar JavaScript)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Solo actuamos en la carga inicial
+        if (firstRender)
+        {
+            // Buscamos el token en el almacenamiento del navegador
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                // Sin token, lo mandamos al login
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                // Con token, autorizamos y refrescamos la vista para mostrar el formulario
+                isAuthorized = true;
+                StateHasChanged();
+            }
+        }
+    }
 
     private async Task GuardarVehiculo()
     {
         try
         {
+            //Recuperamos el token
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
+            // 2. Limpiar y asignar el token al cliente Http
+            Http.DefaultRequestHeaders.Authorization = null; // Limpiamos por si había uno viejo
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // 3. Ahora sí, hacemos el Post normal. El token ya va incluido en las cabeceras.
             var response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
 
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Vehículo creado exitosamente");
                 Navigation.NavigateTo("/catalogo");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Sesión no válida. Por favor, inicia sesión.");
+                Navigation.NavigateTo("/login");
             }
             else
             {
@@ -94,15 +143,15 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error de conexión: {ex.Message}");
-            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", "Error de conexión con el servidor.");
         }
     }
 
-    private void Cancelar()
+    private async Task Cancelar()
     {
-        var confirmacion = JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los cambios realizados.");
+        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los cambios realizados.");
 
-        if (confirmacion.Result) // Esperamos el resultado de la confirmación
+        if (confirmacion) // Esperamos el resultado de la confirmación
         {
             Navigation.NavigateTo("/catalogo");
         }
