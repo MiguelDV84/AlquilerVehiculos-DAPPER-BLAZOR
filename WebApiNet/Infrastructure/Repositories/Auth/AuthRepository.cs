@@ -95,7 +95,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             return result;
         }
 
-        public async Task<PagedResult<Cliente>> GetPagedAsync(int pageNumber, int pageSize)
+        public async Task<PagedResult<Cliente>> GetAllAsync(int pageNumber, int pageSize)
         {
             using var connection = _context.CreateConnection();
             string procedureName = "sp_obtener_clientes";
@@ -103,26 +103,24 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
             parameters.Add("@p_page_number", pageNumber);
             parameters.Add("@p_page_size", pageSize);
 
-            using (var result = await connection.QueryMultipleAsync(
+            using var result = await connection.QueryMultipleAsync(
                 procedureName,
                 parameters,
                 commandType: CommandType.StoredProcedure
-            ))
+            );
+            // 1. Leemos el primer SELECT (el COUNT)
+            int totalCount = await result.ReadFirstAsync<int>();
+
+            // 2. Leemos el segundo SELECT (los DATOS)
+            var clientes = (await result.ReadAsync<Cliente>()).ToList();
+
+            return new PagedResult<Cliente>
             {
-                // 1. Leemos el primer SELECT (el COUNT)
-                int totalCount = await result.ReadFirstAsync<int>();
-
-                // 2. Leemos el segundo SELECT (los DATOS)
-                var clientes = (await result.ReadAsync<Cliente>()).ToList();
-
-                return new PagedResult<Cliente>
-                {
-                    Items = clientes,
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize
-                };
-            }
+                Items = clientes,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<Cliente> GetByEmailAsync(string email)

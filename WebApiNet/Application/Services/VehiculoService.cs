@@ -3,6 +3,7 @@ using WebApiNet.Core.Entities;
 using WebApiNet.Core.Exceptions;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Repositories.UnitOfWork;
+using WebApiNet.Presentation.Paged;
 using WebApiNet.Shared.DTOs.Vehiculo;
 
 namespace WebApiNet.Application.Services
@@ -50,11 +51,19 @@ namespace WebApiNet.Application.Services
 
         }
 
-        public async Task<IEnumerable<VehiculoResponse>> GetAllVehiculosAsync()
+        public async Task<PagedResult<VehiculoResponse>> GetAllVehiculosAsync(int pageNumber, int pageSize)
         {
-            var vehiculos = await _unitOfWork.Vehiculo.GetAllAsync();
+            var pagedEntities = await _unitOfWork.Vehiculo.GetAllAsync(pageNumber, pageSize);
 
-            return _mapper.Map<IEnumerable<VehiculoResponse>>(vehiculos);
+            var pagedResult = new PagedResult<VehiculoResponse>
+            {
+                Items = _mapper.Map<IEnumerable<VehiculoResponse>>(pagedEntities.Items),
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+
+            return pagedResult;
         }
 
         public async Task<VehiculoResponse> GetVehiculoByMatriculaAsync(string matricula)
