@@ -1,5 +1,116 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
+<div class="page">
+    @* NAVBAR SUPERIOR *@
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="bi bi-car-front-fill me-2"></i>
+                <span class="fw-bold text-uppercase">RentDrive</span>
+            </a>
+
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav gap-3">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="catalogo">
+                            <i class="bi bi-car-front-fill me-1"></i> Catálogo
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="#">
+                            <i class="bi bi-calendar-check me-1"></i> Alquilar
+                        </NavLink>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="d-flex align-items-center ms-auto">
+                @if (!string.IsNullOrEmpty(usuarioNombre))
+                {
+                    <div class="dropdown">
+                        @* Cambiamos el comportamiento a un evento de Blazor *@
+                        <button class="btn btn-dark dropdown-toggle border-0" type="button" @onclick="ToggleMenu">
+                            <i class="bi bi-person-circle me-1"></i> Hola, @usuarioNombre
+                        </button>
+
+                        @* Usamos condicionales de C# para mostrar/ocultar *@
+                        <ul class="dropdown-menu dropdown-menu-end shadow @(isMenuOpen ? "show" : "")"
+                            style="display: @(isMenuOpen ? "block" : "none"); position: absolute; right: 0;">
+                            <li><a class="dropdown-item" href="/perfil"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item text-danger" @onclick="CerrarSesion">
+                                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a href="/login" class="btn btn-outline-light btn-sm me-2">Iniciar Sesión</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Crear Cuenta</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <article class="content px-4 py-4">
+            <div class="container">
+                @Body
+            </div>
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Ha ocurrido un error inesperado.
+    <a href="." class="reload">Recargar</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private string? usuarioNombre;
+    private bool isMenuOpen = false; // Nueva variable para controlar el estado
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var nombre = await JS.InvokeAsync<string>("localStorage.getItem", "usuarioNombre");
+                if (!string.IsNullOrEmpty(nombre))
+                {
+                    usuarioNombre = nombre;
+                    StateHasChanged();
+                }
+            }
+            catch { }
+        }
+    }
+
+    private async Task CerrarSesion()
+    {
+        isMenuOpen = false; // Cerramos el menú al salir
+        await JS.InvokeVoidAsync("localStorage.removeItem", "token");
+        await JS.InvokeVoidAsync("localStorage.removeItem", "usuarioNombre");
+        usuarioNombre = null;
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}
+
+
+
+<!-- 
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -21,3 +132,4 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+-->

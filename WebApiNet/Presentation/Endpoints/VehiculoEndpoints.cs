@@ -52,9 +52,9 @@ namespace WebApiNet.Presentation.Endpoints
             });
         }
 
-        private static async Task<IResult> GetAllVehiculos(IVehiculoService service)
+        private static async Task<IResult> GetAllVehiculos(IVehiculoService service, int pageNumber = 1, int pageSize = 10)
         {
-            var result = await service.GetAllVehiculosAsync();
+            var result = await service.GetAllVehiculosAsync(pageNumber, pageSize);
 
             return Results.Ok(new ApiResponse<object>
             {

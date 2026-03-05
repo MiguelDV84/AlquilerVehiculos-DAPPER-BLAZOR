@@ -14,21 +14,6 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
         {
             _context = context;
         }
-
-        public async Task<IReadOnlyList<Vehiculo>> GetAllAsync()
-        {
-            using var connection = _context.CreateConnection();
-
-            string procedureName = "sp_obtener_vehiculos";
-
-            var result = await connection.QueryAsync<Vehiculo>(
-                procedureName,
-                commandType: CommandType.StoredProcedure
-                );
-
-            return result.ToList().AsReadOnly();
-        }
-
         public async Task<Vehiculo?> GetByIdAsync(string matricula)
         {
             using var connection = _context.CreateConnection();
@@ -112,9 +97,30 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
             return vehiculo;
         }
 
-        public Task<PagedResult<Vehiculo>> GetPagedAsync(int pageNumber, int pageSize)
+        public async Task<PagedResult<Vehiculo>> GetAllAsync(int pageNumber, int pageSize)
         {
-            throw new NotImplementedException();
+            using var connection = _context.CreateConnection();
+            string procedureName = "sp_obtener_vehiculos";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_page_number", pageNumber);
+            parameters.Add("@p_page_size", pageSize);
+
+            var result = await connection.QueryMultipleAsync(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            int totalCount = await result.ReadFirstAsync<int>();
+            var items = (await result.ReadAsync<Vehiculo>()).ToList();
+
+           return new PagedResult<Vehiculo>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
     }
 }

@@ -44,7 +44,7 @@ namespace WebApiNet.Application.Services
 
         public async Task<PagedResult<UserResponse>> GetAllUserAync(int pageNumber, int pageSize)
         {
-            var pagedEntities = await _unitOfWork.Auth.GetPagedAsync(pageNumber, pageSize);
+            var pagedEntities = await _unitOfWork.Auth.GetAllAsync(pageNumber, pageSize);
 
             var pagedResult = new PagedResult<UserResponse>
             {

@@ -35,20 +35,28 @@
 
                     <div class="mb-3">
                         <label for="password">Password: </label>
-                        <InputText id="password" @bind-Value="registrarRequest.Password" class="form-control" />
+                        <InputText type="password" id="password" @bind-Value="registrarRequest.Password" class="form-control" />
                         <ValidationMessage For="@(() => registrarRequest.Password)" class="text-danger" />
                     </div> 
 
                     <div class="d-flex gap-2 justify-content-end">
                         
-                        <button type="button" class="btn btn-secondary">
+                        <button type="button" class="btn btn-secondary" @onclick="Cancelar">
                             <i class="bi bi-x-circle"></i> Cancelar
                         </button>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-person-plus"></i> Registrar
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span> Registrando...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-person-plus"></i>
+                            
+                                <span> Registrar</span>
+                            }
                         </button>
-
                     </div>
                 </EditForm>
             </div>
@@ -63,10 +71,14 @@
 
     private RegisterRequest registrarRequest = new();
 
+    private bool isLoading = false;
+
     private async Task CrearUsuario()
     {
         try
         {
+            isLoading = true;
+
             var response = await Http.PostAsJsonAsync("api/auth/register", registrarRequest);
 
             if (response.IsSuccessStatusCode)
@@ -107,6 +119,20 @@
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", $"Ocurrió un error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task Cancelar()
+    {
+        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los añadidos.");
+
+        if (confirmacion)
+        {
+            Navigation.NavigateTo("/login");
         }
     }
 
