@@ -64,26 +64,29 @@ REPLACE INTO `Clientes` (`Dni`, `Email`, `PasswordHash`, `Nombre`, `Role`) VALUE
 	('06241547K', 'maria@test.com', '$2a$11$B0bRVnFscJZDD1eaDVm4Keff7viP2Pa6NfkR.zcsrMHhaQg6qsBiu', 'Maria', 1),
 	('06280146L', 'miguel@test.com', '1234', 'Miguel', 0),
 	('06280457K', 'dolores@test.com', '$2a$11$eU5F./P2xQxvD0zn3iKolOxeOlAZmplCz35aaqRgCKKAkmlb4mGOi', 'Dolores', 1),
-	('47474123N', 'pilar@test.com', '$2a$11$SIlvcla2GVNYcTq0MLYEE.oyzWl6YYc.HZmrkwu8wiFdt2wyLG50.', 'Pilar', 1),
 	('54682485O', 'alberto@test.com', '$2a$11$5pHPfJ1/w9cIJlUAPBSi8ucDDKf3ajW4halLbwNrxreVx0X7lJUnW', 'Alberto', 1),
 	('87454787L', 'rufino@test.com', '$2a$11$o7A91mrG2u8oTOhJOfWjRu57XNtAGQa6LcnO/pJI2c.8V5sRlVR2.', 'Rufino', 1),
 	('87548745H', 'raul@test.com', '$2a$11$pPS.Wh21AIDlFRCjxpScWegsGTcZP9FYTT6fukzjtEFuTPH03RyLK', 'Raul', 1),
 	('98547541P', 'Carlos@test.com', '$2a$11$JCbvyW5WeBjWscaWs08KpuAI0TotcPZP2.GZaoIo30PMLmH.bIkIu', 'Carlos', 1);
 
--- Volcando estructura para procedimiento WebApiNet.so_update_cliente
+-- Volcando estructura para procedimiento WebApiNet.sp_delete_alquileres
 DELIMITER //
-CREATE PROCEDURE `so_update_cliente`(
-	IN `p_email` VARCHAR(50),
-	IN `p_password` VARCHAR(50),
-	IN `p_dni` VARCHAR(50),
-	IN `p_nombre` VARCHAR(50)
+CREATE PROCEDURE `sp_delete_alquileres`(
+	IN `p_id` INT
 )
 BEGIN
-UPDATE Clientes 
-	SET 
-		Email = p_email,
-		PasswordHas = p_password,
-		Nombre = p_nombre
+	DELETE FROM Alquileres
+	WHERE Id = p_id;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_delete_cliente
+DELIMITER //
+CREATE PROCEDURE `sp_delete_cliente`(
+	IN `p_dni` VARCHAR(50)
+)
+BEGIN
+	DELETE FROM Clientes
 	WHERE Dni = p_dni;
 END//
 DELIMITER ;
@@ -96,6 +99,38 @@ CREATE PROCEDURE `sp_delete_vehiculo`(
 BEGIN
 	DELETE FROM Vehiculos
 	WHERE Matricula = p_matricula;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_insert_alquiler
+DELIMITER //
+CREATE PROCEDURE `sp_insert_alquiler`(
+	IN `p_dni_cliente` VARCHAR(50),
+	IN `p_matricula_vehiculo` INT,
+	IN `p_fecha_alquiler` DATE,
+	IN `p_fecha_alquiler_prevista` DATE,
+	IN `p_fecha_alquiler_real` DATE,
+	IN `p_precio` DECIMAL(18,2)
+)
+BEGIN
+	INSERT INTO Alquileres
+	(
+		FechaAlquiler,
+		FechaDevolucionPrevista,
+		FechaDevolucionReal,
+		Precio,
+		ClienteDni,
+		VehiculoMatricula
+	)
+	VALUES 
+	(
+		p_fecha_alquiler,
+		p_fecha_alquiler_prevista,
+		p_fecha_alquiler_real,
+		p_precio,
+		p_dni_cliente,
+		p_matricula_vehiculo
+	);
 END//
 DELIMITER ;
 
@@ -162,14 +197,76 @@ VALUES (
 END//
 DELIMITER ;
 
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_alquiler_id
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_alquiler_id`(
+	IN `p_id` INT
+)
+BEGIN
+	SELECT * FROM Alquileres
+	WHERE Id = p_id;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_alquileres
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_alquileres`(
+	IN `p_page_number` INT,
+	IN `p_page_size` INT
+)
+BEGIN
+	DECLARE v_offset INT;
+	    SET v_offset = (p_page_number - 1) * p_page_size;
+	
+	    -- Primera consulta: Total de registros (para que el front sepa cuántas páginas hay)
+	    SELECT COUNT(*) FROM Alquileres;
+	
+	    -- Segunda consulta: Los datos paginados
+	    SELECT * FROM Alquileres 
+	    ORDER BY Id 
+	    LIMIT p_page_size OFFSET v_offset;
+END//
+DELIMITER ;
+
 -- Volcando estructura para procedimiento WebApiNet.sp_obtener_cliente_dni
 DELIMITER //
 CREATE PROCEDURE `sp_obtener_cliente_dni`(
+	IN `p_dni` VARCHAR(50)
+)
+BEGIN
+	SELECT * FROM Clientes
+	WHERE Dni = p_dni;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_cliente_email
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_cliente_email`(
 	IN `p_email_cliente` VARCHAR(50)
 )
 BEGIN
 SELECT * FROM Clientes
 WHERE Email = p_email_cliente;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_clientes
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_clientes`(
+	IN `p_page_number` INT,
+	IN `p_page_size` INT
+)
+BEGIN
+	DECLARE v_offset INT;
+	    SET v_offset = (p_page_number - 1) * p_page_size;
+	
+	    -- Primera consulta: Total de registros (para que el front sepa cuántas páginas hay)
+	    SELECT COUNT(*) FROM Clientes;
+	
+	    -- Segunda consulta: Los datos paginados
+	    SELECT * FROM Clientes 
+	    ORDER BY Dni 
+	    LIMIT p_page_size OFFSET v_offset;
 END//
 DELIMITER ;
 
@@ -186,9 +283,59 @@ DELIMITER ;
 
 -- Volcando estructura para procedimiento WebApiNet.sp_obtener_vehiculos
 DELIMITER //
-CREATE PROCEDURE `sp_obtener_vehiculos`()
+CREATE PROCEDURE `sp_obtener_vehiculos`(
+	IN `p_page_number` INT,
+	IN `p_page_size` INT
+)
 BEGIN
-SELECT * FROM Vehiculos;
+	DECLARE v_offset INT;
+	    SET v_offset = (p_page_number - 1) * p_page_size;
+	
+	    -- Primera consulta: Total de registros (para que el front sepa cuántas páginas hay)
+	    SELECT COUNT(*) FROM Vehiculos;
+	
+	    -- Segunda consulta: Los datos paginados
+	    SELECT * FROM Vehiculos 
+	    ORDER BY Matricula
+	    LIMIT p_page_size OFFSET v_offset;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_update_alquiler
+DELIMITER //
+CREATE PROCEDURE `sp_update_alquiler`(
+	IN `p_id` INT,
+	IN `p_fecha_alquiler` DATE,
+	IN `p_fecha_devolucion_prevista` DATE,
+	IN `p_precio` DECIMAL(18,2)
+)
+BEGIN
+
+UPDATE Alquileres 
+	SET 
+		FechaAlquiler = p_fecha_alquiler,
+		FechaDevolucionPrevista = p_fecha_devolucion_prevista,
+		Precio = p_precio
+	WHERE Id = p_id;
+
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_update_cliente
+DELIMITER //
+CREATE PROCEDURE `sp_update_cliente`(
+	IN `p_email` VARCHAR(50),
+	IN `p_password` VARCHAR(50),
+	IN `p_dni` VARCHAR(50),
+	IN `p_nombre` VARCHAR(50)
+)
+BEGIN
+UPDATE Clientes 
+	SET 
+		Email = p_email,
+		PasswordHas = p_password,
+		Nombre = p_nombre
+	WHERE Dni = p_dni;
 END//
 DELIMITER ;
 
@@ -231,7 +378,7 @@ CREATE TABLE IF NOT EXISTS `Vehiculos` (
   PRIMARY KEY (`Matricula`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.Vehiculos: ~54 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.Vehiculos: ~53 rows (aproximadamente)
 REPLACE INTO `Vehiculos` (`Matricula`, `TipoVehiculo`, `Kilometraje`, `Marca`, `Modelo`, `Precio`, `LitrosTanque`, `Estado`) VALUES
 	('0001FST', 0, 555000, 'Porsche', '911 Carrera', 200.00, 70, 0),
 	('0007BND', 3, 1200, 'Aston Martin', 'Vantage', 155000.00, 73, 0),
