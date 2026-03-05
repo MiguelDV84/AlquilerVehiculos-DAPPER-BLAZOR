@@ -1,4 +1,5 @@
-﻿using WebApiNet.Presentation.Paged;
+﻿
+using WebApiNet.Shared.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.Base
 {

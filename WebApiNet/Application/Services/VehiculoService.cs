@@ -3,8 +3,8 @@ using WebApiNet.Core.Entities;
 using WebApiNet.Core.Exceptions;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Repositories.UnitOfWork;
-using WebApiNet.Presentation.Paged;
 using WebApiNet.Shared.DTOs.Vehiculo;
+using WebApiNet.Shared.Paged;
 
 namespace WebApiNet.Application.Services
 {

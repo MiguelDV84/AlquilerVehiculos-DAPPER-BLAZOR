@@ -2,6 +2,7 @@
 using System.Data;
 using WebApiNet.Core.Entities;
 using WebApiNet.Infrastructure.Data;
+using WebApiNet.Shared.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 {
@@ -55,6 +56,11 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
         }
 
         public Task<IReadOnlyList<Alquiler>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PagedResult<Alquiler>> GetAllAsync(int pageNumber, int pageSize)
         {
             throw new NotImplementedException();
         }
