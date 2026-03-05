@@ -1,4 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject IJSRuntime JS;
+@inject HttpClient Http;
+@inject NavigationManager Navigation;
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">AlquilerVehiculosWeb</a>
     </div>
@@ -19,6 +23,68 @@
                 <span class="bi bi-car-front-fill fs-3 me-3" aria-hidden="true"></span> Catologo
             </NavLink>
         </div>
+
+        @if (!isLoggedIn)
+        {
+            <div class="nav-item px-3 mt-4">
+                <button class="btn btn-outline-primary w-100" @onclick="IniciarSesion">
+                    <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Iniciar Sesión
+                </button>
+            </div>
+        } else
+        {
+            <div class="nav-item px-3 mt-4">
+                <button class="btn btn-outline-danger w-100" @onclick="CerrarSesion">
+                    <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Cerrar Sesión
+                </button>
+            </div>
+        }
+
+        
     </nav>
 </div>
 
+@code {
+    private bool isLoggedIn = false;
+
+    // Se ejecuta al cargar el menú para verificar si el usuario ya tiene sesión
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Buscamos el token en el navegador
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
+            // Si el token no está vacío, es que hay sesión activa
+            isLoggedIn = !string.IsNullOrEmpty(token);
+
+            // Forzamos al menú a redibujarse con el botón correcto
+            StateHasChanged();
+        }
+    }
+
+    private void IniciarSesion()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private async Task CerrarSesion()
+    {
+        try
+        {
+            // 1. Borramos datos del navegador
+            await JS.InvokeVoidAsync("localStorage.removeItem", "token");
+            await JS.InvokeVoidAsync("localStorage.removeItem", "usuarioNombre");
+
+            // 2. Limpiamos headers
+            Http.DefaultRequestHeaders.Authorization = null;
+
+            // 3. Redirigir forzando recarga total (esto resetea toda la App)
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+        catch (Exception)
+        {
+            Navigation.NavigateTo("/login", true);
+        }
+    }
+}

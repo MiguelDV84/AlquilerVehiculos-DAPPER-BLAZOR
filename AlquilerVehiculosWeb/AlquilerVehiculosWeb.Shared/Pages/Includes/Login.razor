@@ -8,8 +8,8 @@
 
 <div>
     <div class="row justify-content-center">
-        <div>
-            <div>
+        <div class="col-md-4 mt-5">
+            <div class="card shadow">
                 <div class="card-header">
                     <h3>Iniciar Sesion</h3>
                 </div>
@@ -25,13 +25,24 @@
 
                         <div>
                             <label for="password">Contraseña</label>
-                            <InputText id="password" class="form-control" @bind-Value="loginModel.Password" />
+                            <InputText type="password" id="password" class="form-control" @bind-Value="loginModel.Password" />
                             <ValidationMessage For="@(() => loginModel.Password)" class="text-danger" />
                         </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
 
-                        <button type="submit" class="form-control">
-                            <i class="bi bi-box-arrow-in-left"></i>Acceder
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span> Cargando...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-person-plus"></i><span> Registrar</span>
+                            }
+
                         </button>
+                        
                     </EditForm>
                 </div>
                 <div class="card-footer" >
@@ -45,8 +56,12 @@
 @code {
     private LoginRequest loginModel = new();
 
+    private Boolean isProcessing = false;
+
     private async Task RealizarLogin()
     {
+        isProcessing = true;
+
         var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
 
         if (response.IsSuccessStatusCode)
@@ -59,7 +74,7 @@
                 await JS.InvokeVoidAsync("localStorage.setItem", "usuarioNombre", result.Data.User.Nombre);
                 
                 // Redirigir al usuario a la página principal o dashboard
-                Navigation.NavigateTo("/");
+                Navigation.NavigateTo("/", forceLoad: true);
             }
         }
         else

@@ -3,13 +3,21 @@
 @using WebApiNet.Shared.DTOs.Common
 @using WebApiNet.Shared.DTOs.Vehiculo
 @using WebApiNet.Shared.Enums
+@inject IJSRuntime JS
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-@if (vehiculo == null)
+@if (!isAuthorized)
 {
-    <div class="text-center">
+    <div class="text-center mt-5">
         <div class="spinner-border text-primary" role="status"></div>
+        <p>Verificando autorización...</p>
+    </div>
+}
+else if (vehiculo == null)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-secondary" role="status"></div>
         <p>Cargando detalles del vehículo @Matricula...</p>
     </div>
 }
@@ -116,15 +124,45 @@ else
 }
 
 @code {
+
+
     [Parameter]
     public string Matricula { get; set; } = string.Empty;
 
     private VehiculoResponse? vehiculo;
 
-    protected override async Task OnInitializedAsync()
+    private bool isAuthorized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Buscamos el token en el navegador
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                // Si no hay token, fuera al login
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                // Si hay token, autorizamos y cargamos los datos del vehículo
+                isAuthorized = true;
+                await CargarDetalles(token);
+                StateHasChanged(); // Refrescamos para mostrar los datos
+            }
+        }
+    }
+
+    private async Task CargarDetalles(string token)
     {
         try
         {
+            // Configuramos el token en la cabecera para la petición a la API
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
             var response = await Http.GetFromJsonAsync<ApiResponse<VehiculoResponse>>($"api/vehiculos/{Matricula}");
 
             if (response != null && response.Success)

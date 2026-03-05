@@ -1,0 +1,114 @@
+﻿@page "/register"
+@using WebApiNet.Shared.DTOs.Auth
+@using WebApiNet.Shared.DTOs.Common
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div>
+    <div class="row justify-content-center">
+        <div>
+            <div class="card-header">
+                <h3>Crear Cuenta</h3>
+            </div>
+            <div class="card-body">
+                <EditForm Model="registrarRequest" OnValidSubmit="CrearUsuario">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-3">
+                        <label for="dni">DNI: </label>
+                        <InputText id="dni" class="form-control" @bind-Value="registrarRequest.Dni" />
+                        <ValidationMessage For="@(() => registrarRequest.Dni)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nombre">Nombre: </label>
+                        <InputText id="nombre" class="form-control" @bind-Value="registrarRequest.Nombre" />
+                        <ValidationMessage For="@(() => registrarRequest.Nombre)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email">Email: </label>
+                        <InputText id="email" class="form-control" @bind-Value="registrarRequest.Email" />
+                        <ValidationMessage For="@(() => registrarRequest.Email)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password">Password: </label>
+                        <InputText id="password" @bind-Value="registrarRequest.Password" class="form-control" />
+                        <ValidationMessage For="@(() => registrarRequest.Password)" class="text-danger" />
+                    </div> 
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        
+                        <button type="button" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-plus"></i> Registrar
+                        </button>
+
+                    </div>
+                </EditForm>
+            </div>
+            <div class="card-footer">
+                <p>¿Ya tienes una cuenta? <a href="/login">Iniciar sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private RegisterRequest registrarRequest = new();
+
+    private async Task CrearUsuario()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/register", registrarRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>();
+
+                if (result != null && result.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", "Usuario creado exitosamente. Ahora puedes iniciar sesión.");
+                    Navigation.NavigateTo("/login");
+                }
+            }
+            else
+            {
+                // Leemos el contenido del error para depurar
+                var errorBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Cuerpo del error: {errorBody}"); // Mira esto en la consola F12
+
+                // Intentamos extraer el mensaje si la API devuelve un ApiResponse
+                try
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>();
+                    if (errorResult != null && !string.IsNullOrEmpty(errorResult.Message))
+                    {
+                        await JS.InvokeVoidAsync("alert", $"Error: {errorResult.Message}");
+                    }
+                    else
+                    {
+                        await JS.InvokeVoidAsync("alert", "Error al crear usuario. Revisa la consola (F12).");
+                    }
+                }
+                catch
+                {
+                    await JS.InvokeVoidAsync("alert", "Error en el servidor. Verifica el formato de los datos.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Ocurrió un error: {ex.Message}");
+        }
+    }
+
+
+}
