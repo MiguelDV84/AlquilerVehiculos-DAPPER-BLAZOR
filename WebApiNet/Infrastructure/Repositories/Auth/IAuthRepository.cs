@@ -1,6 +1,6 @@
 ﻿using WebApiNet.Core.Entities;
 using WebApiNet.Infrastructure.Repositories.Base;
-using WebApiNet.Presentation.Paged;
+using WebApiNet.Shared.Paged;
 
 namespace WebApiNet.Infrastructure.Repositories.Auth
 {

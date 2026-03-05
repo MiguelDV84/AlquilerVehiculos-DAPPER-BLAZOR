@@ -1,5 +1,5 @@
-﻿using WebApiNet.Presentation.Paged;
-using WebApiNet.Shared.DTOs.Auth;
+﻿using WebApiNet.Shared.DTOs.Auth;
+using WebApiNet.Shared.Paged;
 
 namespace WebApiNet.Core.Interfaces
 {

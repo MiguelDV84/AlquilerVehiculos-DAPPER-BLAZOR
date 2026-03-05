@@ -6,8 +6,8 @@ using System.Text;
 using WebApiNet.Core.Entities;
 using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Repositories.UnitOfWork;
-using WebApiNet.Presentation.Paged;
 using WebApiNet.Shared.DTOs.Auth;
+using WebApiNet.Shared.Paged;
 
 namespace WebApiNet.Application.Services
 {
