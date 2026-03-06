@@ -8,10 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Configuramos el cliente HTTP para conectar con la API de Dapper
+// Cambiamos el puerto al 7267 y usamos HTTPS
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://localhost:5276/")
+    BaseAddress = new Uri("https://localhost:7267/")
 });
 
 // Add device-specific services used by the AlquilerVehiculosWeb.Shared project
