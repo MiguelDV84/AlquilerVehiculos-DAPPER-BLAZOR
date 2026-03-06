@@ -6,53 +6,60 @@
     @* NAVBAR SUPERIOR *@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container-fluid px-4">
+            @* LOGO *@
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <i class="bi bi-car-front-fill me-2"></i>
                 <span class="fw-bold text-uppercase">RentDrive</span>
             </a>
 
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav gap-3">
+            @* BOTÓN HAMBURGUESA (Solo visible en móviles) *@
+            <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            @* CONTENEDOR COLAPSABLE *@
+            <div class="collapse navbar-collapse @(isNavMenuCollapsed ? "" : "show")" id="navbarNav">
+                @* Enlaces centrales *@
+                <ul class="navbar-nav mx-auto gap-lg-3">
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="catalogo">
+                        <NavLink class="nav-link" href="catalogo" @onclick="CloseMenu">
                             <i class="bi bi-car-front-fill me-1"></i> Catálogo
                         </NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="#">
+                        <NavLink class="nav-link" href="#" @onclick="CloseMenu">
                             <i class="bi bi-calendar-check me-1"></i> Alquilar
                         </NavLink>
                     </li>
                 </ul>
-            </div>
 
-            <div class="d-flex align-items-center ms-auto">
-                @if (!string.IsNullOrEmpty(usuarioNombre))
-                {
-                    <div class="dropdown">
-                        @* Cambiamos el comportamiento a un evento de Blazor *@
-                        <button class="btn btn-dark dropdown-toggle border-0" type="button" @onclick="ToggleMenu">
-                            <i class="bi bi-person-circle me-1"></i> Hola, @usuarioNombre
-                        </button>
+                @* Sección de Usuario (Derecha) *@
+                <div class="d-flex align-items-center mt-3 mt-lg-0">
+                    @if (!string.IsNullOrEmpty(usuarioNombre))
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-dark dropdown-toggle border-0" type="button" @onclick="ToggleUserMenu">
+                                <i class="bi bi-person-circle me-1"></i> Hola, @usuarioNombre
+                            </button>
 
-                        @* Usamos condicionales de C# para mostrar/ocultar *@
-                        <ul class="dropdown-menu dropdown-menu-end shadow @(isMenuOpen ? "show" : "")"
-                            style="display: @(isMenuOpen ? "block" : "none"); position: absolute; right: 0;">
-                            <li><a class="dropdown-item" href="/perfil"><i class="bi bi-person"></i> Mi Perfil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <button class="dropdown-item text-danger" @onclick="CerrarSesion">
-                                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                }
-                else
-                {
-                    <a href="/login" class="btn btn-outline-light btn-sm me-2">Iniciar Sesión</a>
-                    <a href="/register" class="btn btn-primary btn-sm">Crear Cuenta</a>
-                }
+                            <ul class="dropdown-menu dropdown-menu-end shadow @(isUserMenuOpen ? "show" : "")"
+                                style="display: @(isUserMenuOpen ? "block" : "none"); position: absolute; right: 0;">
+                                <li><a class="dropdown-item" href="/perfil" @onclick="CloseMenu"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger" @onclick="CerrarSesion">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a href="/login" class="btn btn-outline-light btn-sm me-2">Iniciar Sesión</a>
+                        <a href="/register" class="btn btn-primary btn-sm">Crear Cuenta</a>
+                    }
+                </div>
             </div>
         </div>
     </nav>
@@ -71,6 +78,25 @@
 @code {
     private string? usuarioNombre;
     private bool isMenuOpen = false; // Nueva variable para controlar el estado
+    private bool isNavMenuCollapsed = true; // Controla el menú hamburguesa
+    private bool isUserMenuOpen = false;    // Controla el desplegable del nombre
+
+    private void ToggleNavMenu()
+    {
+        isNavMenuCollapsed = !isNavMenuCollapsed;
+        if (!isNavMenuCollapsed) isUserMenuOpen = false; // Cierra el otro si abres este
+    }
+
+    private void ToggleUserMenu()
+    {
+        isUserMenuOpen = !isUserMenuOpen;
+    }
+
+    private void CloseMenu()
+    {
+        isNavMenuCollapsed = true;
+        isUserMenuOpen = false;
+    }
 
     private void ToggleMenu()
     {
