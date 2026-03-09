@@ -2,49 +2,43 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
+@* EL LAYOUT ES EL MARCO DE LA APP. 
+   Todo lo que pongas aquí aparecerá en TODAS las páginas.
+*@
+
 <div class="page">
-    @* NAVBAR SUPERIOR *@
+    @* NAVBAR: Usamos Bootstrap para una barra de navegación profesional *@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container-fluid px-4">
-            @* LOGO *@
+            @* BRAND: El logo de RentDrive siempre nos lleva al Home *@
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <i class="bi bi-car-front-fill me-2"></i>
                 <span class="fw-bold text-uppercase">RentDrive</span>
             </a>
 
-            @* BOTÓN HAMBURGUESA (Solo visible en móviles) *@
-            <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            @* CONTENEDOR COLAPSABLE *@
-            <div class="collapse navbar-collapse @(isNavMenuCollapsed ? "" : "show")" id="navbarNav">
-                @* Enlaces centrales *@
+            @* MENÚ DE NAVEGACIÓN DINÁMICO *@
+            <div class="collapse navbar-collapse @(isNavMenuCollapsed ? "" : "show")">
                 <ul class="navbar-nav mx-auto gap-lg-3">
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="catalogo" @onclick="CloseMenu">
+                        <NavLink class="nav-link" href="catalogo">
                             <i class="bi bi-car-front-fill me-1"></i> Catálogo
-                        </NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="#" @onclick="CloseMenu">
-                            <i class="bi bi-calendar-check me-1"></i> Alquilar
                         </NavLink>
                     </li>
                 </ul>
 
-                @* Sección de Usuario (Derecha) *@
+                @* SECCIÓN DE AUTENTICACIÓN DINÁMICA *@
                 <div class="d-flex align-items-center mt-3 mt-lg-0">
                     @if (!string.IsNullOrEmpty(usuarioNombre))
                     {
+                        @* SI EL USUARIO ESTÁ LOGUEADO: Mostramos su nombre y opción de salir *@
                         <div class="dropdown">
-                            <button class="btn btn-dark dropdown-toggle border-0" type="button" @onclick="ToggleUserMenu">
+                            <button class="btn btn-dark dropdown-toggle" @onclick="ToggleUserMenu">
                                 <i class="bi bi-person-circle me-1"></i> Hola, @usuarioNombre
                             </button>
 
                             <ul class="dropdown-menu dropdown-menu-end shadow @(isUserMenuOpen ? "show" : "")"
-                                style="display: @(isUserMenuOpen ? "block" : "none"); position: absolute; right: 0;">
-                                <li><a class="dropdown-item" href="/perfil" @onclick="CloseMenu"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                                style="display: @(isUserMenuOpen ? "block" : "none");">
+                                <li><a class="dropdown-item" href="/perfil"><i class="bi bi-person"></i> Perfil</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <button class="dropdown-item text-danger" @onclick="CerrarSesion">
@@ -56,6 +50,7 @@
                     }
                     else
                     {
+                        @* SI NO HAY SESIÓN: Mostramos botones de Iniciar Sesión / Registro *@
                         <a href="/login" class="btn btn-outline-light btn-sm me-2">Iniciar Sesión</a>
                         <a href="/register" class="btn btn-primary btn-sm">Crear Cuenta</a>
                     }
@@ -64,6 +59,7 @@
         </div>
     </nav>
 
+    @* EL CUERPO DE LA PÁGINA: Aquí es donde Blazor inyecta el contenido de cada @page *@
     <main>
         <article class="content px-4 py-4">
             <div class="container">
@@ -73,61 +69,44 @@
     </main>
 </div>
 
-
-
 @code {
     private string? usuarioNombre;
-    private bool isMenuOpen = false; // Nueva variable para controlar el estado
-    private bool isNavMenuCollapsed = true; // Controla el menú hamburguesa
-    private bool isUserMenuOpen = false;    // Controla el desplegable del nombre
+    private bool isNavMenuCollapsed = true;
+    private bool isUserMenuOpen = false;
 
-    private void ToggleNavMenu()
-    {
-        isNavMenuCollapsed = !isNavMenuCollapsed;
-        if (!isNavMenuCollapsed) isUserMenuOpen = false; // Cierra el otro si abres este
-    }
-
-    private void ToggleUserMenu()
-    {
-        isUserMenuOpen = !isUserMenuOpen;
-    }
-
-    private void CloseMenu()
-    {
-        isNavMenuCollapsed = true;
-        isUserMenuOpen = false;
-    }
-
-    private void ToggleMenu()
-    {
-        isMenuOpen = !isMenuOpen;
-    }
-
+    // --- SINCRONIZACIÓN DE ESTADO ---
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            try
+            // Al cargar la App, miramos si hay un nombre de usuario en LocalStorage.
+            // Esto permite que el nombre aparezca arriba aunque refresques la página.
+            var nombre = await JS.InvokeAsync<string>("localStorage.getItem", "usuarioNombre");
+            if (!string.IsNullOrEmpty(nombre))
             {
-                var nombre = await JS.InvokeAsync<string>("localStorage.getItem", "usuarioNombre");
-                if (!string.IsNullOrEmpty(nombre))
-                {
-                    usuarioNombre = nombre;
-                    StateHasChanged();
-                }
+                usuarioNombre = nombre;
+                StateHasChanged(); // Forzamos actualización para que aparezca el "Hola, Nombre"
             }
-            catch { }
         }
     }
 
+    // --- ACCIÓN: LOGOUT ---
     private async Task CerrarSesion()
     {
-        isMenuOpen = false; // Cerramos el menú al salir
+        // 1. Limpiamos el almacenamiento local (borramos Token y Nombre).
         await JS.InvokeVoidAsync("localStorage.removeItem", "token");
         await JS.InvokeVoidAsync("localStorage.removeItem", "usuarioNombre");
+
+        // 2. Limpiamos la variable local.
         usuarioNombre = null;
+
+        // 3. Redirigimos al Login y forzamos recarga para limpiar cualquier rastro de la sesión.
         Navigation.NavigateTo("/login", forceLoad: true);
     }
+
+    // Métodos para controlar el despliegue de menús (UX)
+    private void ToggleUserMenu() => isUserMenuOpen = !isUserMenuOpen;
+    private void CloseMenu() { isNavMenuCollapsed = true; isUserMenuOpen = false; }
 }
 
 

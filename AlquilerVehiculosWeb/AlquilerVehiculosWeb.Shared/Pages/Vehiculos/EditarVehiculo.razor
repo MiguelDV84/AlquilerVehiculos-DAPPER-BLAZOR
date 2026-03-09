@@ -72,18 +72,26 @@ else
 
 
 @code {
+    // --- PARÁMETRO DE RUTA ---
+    // Recibimos la matrícula desde la URL para saber QUÉ coche estamos editando.
     [Parameter] public string Matricula { get; set; } = string.Empty;
 
+    // Control de seguridad
     private Boolean isAuthorized = false;
 
+    // --- MODELO DE FORMULARIO ---
+    // Instanciamos el DTO de actualización.
+    // Sus propiedades están vinculadas (bind) a los inputs del formulario.
     private VehiculoUpdateRequest modeloEdicion = new();
 
+    // --- PASO 1: CARGAR DATOS ACTUALES (GET) ---
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             try
             {
+                // Verificamos si el usuario tiene el token de sesión.
                 var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
                 if (string.IsNullOrEmpty(token))
@@ -92,7 +100,7 @@ else
                     return;
                 }
 
-                // Cargamos los datos actuales del vehículo para rellenar el formulario
+                // Preparamos la petición para traer los datos actuales del coche.
                 var request = new HttpRequestMessage(HttpMethod.Get, $"api/vehiculos/{Matricula}");
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -103,21 +111,21 @@ else
                     var result = await response.Content.ReadFromJsonAsync<ApiResponse<VehiculoResponse>>();
                     if (result != null && result.Success)
                     {
-                        // Mapeamos los datos al modelo de edición
+                        // MAPEADO: Pasamos los datos de la base de datos al modelo del formulario.
+                        // Esto permite que el usuario vea lo que ya había escrito antes de editar.
                         modeloEdicion.Modelo = result.Data.Modelo;
                         modeloEdicion.Marca = result.Data.Marca;
                         modeloEdicion.Precio = result.Data.Precio;
                         modeloEdicion.Kilometraje = result.Data.Kilometraje;
                         modeloEdicion.LitrosTanque = result.Data.LitrosTanque;
 
-                        // Marcamos como autorizado y forzamos el redibujado
                         isAuthorized = true;
-                        StateHasChanged();
+                        StateHasChanged(); // Repintamos la interfaz con los datos cargados.
                     }
                 }
                 else
                 {
-                    await JS.InvokeVoidAsync("alert", "No se pudieron cargar los datos del vehículo.");
+                    await JS.InvokeVoidAsync("alert", "No se pudieron cargar los datos.");
                     Navigation.NavigateTo("/catalogo");
                 }
             }
@@ -128,20 +136,23 @@ else
         }
     }
 
+    // --- PASO 2: ENVIAR CAMBIOS A LA API (PUT) ---
     public async Task editarVehiculo()
     {
         try
         {
             var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
-            // OPCIÓN MÁS FÁCIL: Usar el cliente Http directamente con el header
+            // Adjuntamos el token para que la API nos deje hacer cambios.
             Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            // Enviamos el PUT con el objeto modeloEdicion como JSON
+            // PETICIÓN HTTP PUT: Enviamos el objeto 'modeloEdicion' serializado como JSON.
+            // El PUT se usa para actualizaciones completas del recurso.
             var responseEditar = await Http.PutAsJsonAsync($"api/vehiculos/{Matricula}", modeloEdicion);
 
             if (responseEditar.IsSuccessStatusCode)
             {
+                // Si la API responde OK, avisamos y volvemos al catálogo.
                 await JS.InvokeVoidAsync("alert", "Vehículo actualizado correctamente");
                 Navigation.NavigateTo("/catalogo");
             }
@@ -161,13 +172,14 @@ else
         }
     }
 
+    // --- CANCELACIÓN ---
     private async Task Cancelar()
     {
-        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los cambios.");
+        // Preguntamos al usuario antes de salir para que no pierda cambios por error.
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro? Se perderán los cambios.");
         if (confirmado)
         {
             Navigation.NavigateTo("/catalogo");
         }
-
     }
 }

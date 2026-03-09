@@ -79,50 +79,63 @@
 
 
 @code {
+    // --- MODELO DE USUARIO ---
+    // Usamos UserResponse (DNI, Nombre, Email) para pintar los datos en pantalla.
     private UserResponse? userResponse;
 
+    // --- CICLO DE VIDA ---
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Al cargar la página, disparamos la petición a la API.
             await ObtenerDatosUsuario();
         }
     }
 
+    // --- RECUPERACIÓN DE DATOS (GET) ---
     private async Task ObtenerDatosUsuario()
     {
         try
         {
-            // 1. Recuperamos y limpiamos el token (******)
+            // 1. RECUPERACIÓN DEL TOKEN:
+            // Lo leemos del LocalStorage del navegador. Si no existe, el usuario no está logueado.
             var tokenRaw = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
             if (string.IsNullOrEmpty(tokenRaw))
             {
                 Navigation.NavigateTo("/login");
                 return;
             }
+
+            // Limpiamos el token de posibles comillas extras.
             var token = tokenRaw.Replace("\"", "");
 
-            // 2. Configuramos la cabecera de autorización
+            // 2. AUTORIZACIÓN:
+            // Insertamos el token en la cabecera 'Authorization' como un Bearer Token.
+            // Esto permite que la API sepa QUIÉN está pidiendo los datos.
             Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            // 3. Llamamos a la API (Como ya configuramos la BaseAddress, solo usamos la ruta relativa)
+            // 3. LLAMADA A LA API:
+            // Consumimos el endpoint 'api/auth/user', que está protegido.
+            // La API lee el token, busca al usuario en la base de datos y nos devuelve su info.
             var response = await Http.GetFromJsonAsync<ApiResponse<UserResponse>>("api/auth/user");
 
             if (response != null && response.Success)
             {
                 userResponse = response.Data;
+                // Forzamos el redibujado para quitar el spinner y mostrar los datos.
                 StateHasChanged();
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error al obtener perfil: {ex.Message}");
-            // Si falla el token o expira, mandamos a login
+            // Si el token ha expirado o hay un error, lo enviamos al login por seguridad.
             Navigation.NavigateTo("/login");
         }
     }
 
     private void Volver() => Navigation.NavigateTo("/catalogo");
-
 }
