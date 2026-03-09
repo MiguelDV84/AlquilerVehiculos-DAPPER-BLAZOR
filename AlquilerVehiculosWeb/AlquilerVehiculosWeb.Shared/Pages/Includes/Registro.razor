@@ -68,38 +68,45 @@
 </div>
 
 @code {
-
+    // --- MODELO DE REGISTRO ---
+    // Objeto que mapea los campos del formulario (DNI, Nombre, Email, Password).
     private RegisterRequest registrarRequest = new();
 
+    // Estado para controlar el spinner del botón
     private bool isLoading = false;
 
+    // --- ACCIÓN: CREAR USUARIO (POST) ---
     private async Task CrearUsuario()
     {
         try
         {
             isLoading = true;
 
+            // 1. PETICIÓN POST: Enviamos los datos del nuevo usuario a la API.
+            // A diferencia de otros componentes, este no necesita Token (porque aún no somos usuarios).
             var response = await Http.PostAsJsonAsync("api/auth/register", registrarRequest);
 
             if (response.IsSuccessStatusCode)
             {
+                // 2. ÉXITO: Si la API acepta el registro, leemos la respuesta.
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>();
 
                 if (result != null && result.Success)
                 {
+                    // Notificamos al usuario y lo mandamos al Login para que use su nueva cuenta.
                     await JS.InvokeVoidAsync("alert", "Usuario creado exitosamente. Ahora puedes iniciar sesión.");
                     Navigation.NavigateTo("/login");
                 }
             }
             else
             {
-                // Leemos el contenido del error para depurar
+                // 3. MANEJO DE ERRORES:
+                // Si la API falla (ej: el email ya existe), intentamos leer el mensaje de error.
                 var errorBody = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Cuerpo del error: {errorBody}"); // Mira esto en la consola F12
 
-                // Intentamos extraer el mensaje si la API devuelve un ApiResponse
                 try
                 {
+                    // Intentamos deserializar el error para mostrar un mensaje amigable.
                     var errorResult = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>();
                     if (errorResult != null && !string.IsNullOrEmpty(errorResult.Message))
                     {
@@ -107,12 +114,13 @@
                     }
                     else
                     {
-                        await JS.InvokeVoidAsync("alert", "Error al crear usuario. Revisa la consola (F12).");
+                        await JS.InvokeVoidAsync("alert", "Error al crear usuario.");
                     }
                 }
                 catch
                 {
-                    await JS.InvokeVoidAsync("alert", "Error en el servidor. Verifica el formato de los datos.");
+                    // Si el error no viene en formato JSON esperado, mostramos un error genérico.
+                    await JS.InvokeVoidAsync("alert", "Error en el servidor. Verifica los datos.");
                 }
             }
         }
@@ -122,19 +130,20 @@
         }
         finally
         {
+            // Siempre restauramos el estado del botón al finalizar.
             isLoading = false;
         }
     }
 
+    // --- CANCELAR ---
     private async Task Cancelar()
     {
-        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los añadidos.");
+        // Preguntamos para evitar salir por accidente.
+        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro? Se perderán los datos.");
 
         if (confirmacion)
         {
             Navigation.NavigateTo("/login");
         }
     }
-
-
 }
