@@ -18,4 +18,11 @@
     <ProjectReference Include="..\..\WebApiNet.Shared\WebApiNet.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\css\components\" />
+    <Folder Include="wwwroot\css\layout\" />
+    <Folder Include="wwwroot\css\base\" />
+    <Folder Include="wwwroot\css\pages\" />
+  </ItemGroup>
+
 </Project>

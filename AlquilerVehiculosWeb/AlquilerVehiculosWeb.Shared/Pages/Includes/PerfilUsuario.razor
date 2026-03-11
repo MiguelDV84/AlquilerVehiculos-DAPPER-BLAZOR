@@ -1,0 +1,141 @@
+﻿@page "/perfil"
+@using WebApiNet.Shared.DTOs.Auth
+@using WebApiNet.Shared.DTOs.Common
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                @* CABECERA DECORATIVA *@
+                <div class="profile-header">
+                    <div class="text-center pt-4">
+                        <div class="avatar-circle shadow">
+                            <i class="bi bi-person-fill text-white"></i>
+                        </div>
+                        <h4 class="text-white mt-3 mb-0 fw-bold">@userResponse?.Nombre</h4>
+                        <p class="text-white-50 small">Cliente VIP RentDrive</p>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    @if (userResponse == null)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-3 text-muted">Sincronizando con la central...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="profile-info-grid">
+                            @* DNI *@
+                            <div class="info-item d-flex align-items-center mb-4">
+                                <div class="icon-box me-3">
+                                    <i class="bi bi-card-text text-primary"></i>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block">Identificación (DNI)</label>
+                                    <span class="fw-bold fs-5">@userResponse.Dni</span>
+                                </div>
+                            </div>
+
+                            @* EMAIL *@
+                            <div class="info-item d-flex align-items-center mb-4">
+                                <div class="icon-box me-3">
+                                    <i class="bi bi-envelope-at text-primary"></i>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block">Correo Electrónico</label>
+                                    <span class="fw-bold fs-5">@userResponse.Email</span>
+                                </div>
+                            </div>
+
+                            @* ESTADO DE CUENTA (Extra visual) *@
+                            <div class="info-item d-flex align-items-center mb-4">
+                                <div class="icon-box me-3">
+                                    <i class="bi bi-shield-check text-success"></i>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block">Estado de Cuenta</label>
+                                    <span class="badge bg-success-subtle text-success rounded-pill">Verificada</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-dark btn-lg rounded-3 shadow-sm" @onclick="Volver">
+                                <i class="bi bi-arrow-left me-2"></i>Volver al Catálogo
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    // --- MODELO DE USUARIO ---
+    // Usamos UserResponse (DNI, Nombre, Email) para pintar los datos en pantalla.
+    private UserResponse? userResponse;
+
+    // --- CICLO DE VIDA ---
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Al cargar la página, disparamos la petición a la API.
+            await ObtenerDatosUsuario();
+        }
+    }
+
+    // --- RECUPERACIÓN DE DATOS (GET) ---
+    private async Task ObtenerDatosUsuario()
+    {
+        try
+        {
+            // 1. RECUPERACIÓN DEL TOKEN:
+            // Lo leemos del LocalStorage del navegador. Si no existe, el usuario no está logueado.
+            var tokenRaw = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
+            if (string.IsNullOrEmpty(tokenRaw))
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            // Limpiamos el token de posibles comillas extras.
+            var token = tokenRaw.Replace("\"", "");
+
+            // 2. AUTORIZACIÓN:
+            // Insertamos el token en la cabecera 'Authorization' como un Bearer Token.
+            // Esto permite que la API sepa QUIÉN está pidiendo los datos.
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // 3. LLAMADA A LA API:
+            // Consumimos el endpoint 'api/auth/user', que está protegido.
+            // La API lee el token, busca al usuario en la base de datos y nos devuelve su info.
+            var response = await Http.GetFromJsonAsync<ApiResponse<UserResponse>>("api/auth/user");
+
+            if (response != null && response.Success)
+            {
+                userResponse = response.Data;
+                // Forzamos el redibujado para quitar el spinner y mostrar los datos.
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener perfil: {ex.Message}");
+            // Si el token ha expirado o hay un error, lo enviamos al login por seguridad.
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void Volver() => Navigation.NavigateTo("/catalogo");
+}

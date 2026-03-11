@@ -81,51 +81,58 @@ else
         </div>
     </div>
 }
+
 @code {
+    // Control de seguridad para proteger la ruta
     private bool isAuthorized = false;
 
+    // --- MODELO DE SOLICITUD ---
+    // Instanciamos un objeto vacío de tipo VehiculoRequest.
+    // Este objeto recogerá todos los datos del formulario mediante bind-value.
     private VehiculoRequest nuevoVehiculo = new();
 
-    // Se ejecuta tras cargar la página en el navegador (único sitio seguro para usar JavaScript)
+    // --- CICLO DE VIDA ---
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Solo actuamos en la carga inicial
         if (firstRender)
         {
-            // Buscamos el token en el almacenamiento del navegador
+            // Verificamos si el usuario tiene el token para permitirle crear vehículos.
             var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
             if (string.IsNullOrEmpty(token))
             {
-                // Sin token, lo mandamos al login
                 Navigation.NavigateTo("/login");
             }
             else
             {
-                // Con token, autorizamos y refrescamos la vista para mostrar el formulario
                 isAuthorized = true;
-                StateHasChanged();
+                StateHasChanged(); // Mostramos el formulario tras la validación
             }
         }
     }
 
+    // --- ACCIÓN: GUARDAR (POST) ---
     private async Task GuardarVehiculo()
     {
         try
         {
-            //Recuperamos el token
+            // 1. RECOGIDA DE TOKEN: Necesario para autorizar la creación en la API.
             var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
-            // 2. Limpiar y asignar el token al cliente Http
-            Http.DefaultRequestHeaders.Authorization = null; // Limpiamos por si había uno viejo
+            // 2. CONFIGURACIÓN DE CABECERAS:
+            // Limpiamos cabeceras previas y añadimos el Bearer Token actual.
+            Http.DefaultRequestHeaders.Authorization = null;
             Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            // 3. Ahora sí, hacemos el Post normal. El token ya va incluido en las cabeceras.
+            // 3. ENVÍO DE DATOS (HTTP POST):
+            // Enviamos el objeto 'nuevoVehiculo' a la API.
+            // El método PostAsJsonAsync se encarga de convertir nuestro objeto C# a formato JSON.
             var response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
 
             if (response.IsSuccessStatusCode)
             {
+                // ÉXITO: Feedback positivo al usuario y redirección al catálogo para ver el nuevo coche.
                 await JS.InvokeVoidAsync("alert", "Vehículo creado exitosamente");
                 Navigation.NavigateTo("/catalogo");
             }
@@ -136,6 +143,7 @@ else
             }
             else
             {
+                // ERROR DE VALIDACIÓN O BBDD: Leemos el mensaje de error que nos manda la API (compañero).
                 var errorContent = await response.Content.ReadAsStringAsync();
                 await JS.InvokeVoidAsync("alert", $"Error al guardar: {errorContent}");
             }
@@ -147,14 +155,15 @@ else
         }
     }
 
+    // --- CANCELAR ---
     private async Task Cancelar()
     {
-        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres cancelar? Se perderán los cambios realizados.");
+        // Validación de salida para no perder datos por un clic accidental.
+        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Deseas cancelar? Se perderán los datos introducidos.");
 
-        if (confirmacion) // Esperamos el resultado de la confirmación
+        if (confirmacion)
         {
             Navigation.NavigateTo("/catalogo");
         }
-
     }
 }

@@ -125,56 +125,72 @@ else
 
 @code {
 
-
+    // --- PARÁMETRO DE RUTA ---
+    // Este valor viene directamente de la URL (ej: /vehiculo/1234BBB).
+    // Blazor lo inyecta automáticamente gracias al atributo [Parameter].
     [Parameter]
     public string Matricula { get; set; } = string.Empty;
 
+    // --- VARIABLES DE ESTADO ---
+    // Guardará la información de un único vehículo después de consultar la API.
     private VehiculoResponse? vehiculo;
 
+    // Control de acceso para evitar que usuarios sin login vean los datos.
     private bool isAuthorized = false;
 
+    // --- CICLO DE VIDA: AL INICIAR EL COMPONENTE ---
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // Solo ejecutamos la lógica de seguridad y carga la primera vez que se renderiza.
         if (firstRender)
         {
-            // Buscamos el token en el navegador
+            // 1. RECOGIDA DE CREDENCIALES: Buscamos el token JWT en el LocalStorage.
             var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
             if (string.IsNullOrEmpty(token))
             {
-                // Si no hay token, fuera al login
+                // SEGURIDAD: Si no hay llave (token), redirigimos al Login.
                 Navigation.NavigateTo("/login");
             }
             else
             {
-                // Si hay token, autorizamos y cargamos los datos del vehículo
+                // 2. CARGA DE DATOS: Si hay token, pedimos los detalles a la API.
                 isAuthorized = true;
                 await CargarDetalles(token);
-                StateHasChanged(); // Refrescamos para mostrar los datos
+
+                // Forzamos el repintado de la UI porque los datos han llegado de forma asíncrona.
+                StateHasChanged(); 
             }
         }
     }
 
+    // --- CONSUMO DE API (GET BY ID/MATRICULA) ---
     private async Task CargarDetalles(string token)
     {
         try
         {
-            // Configuramos el token en la cabecera para la petición a la API
+            // 1. AUTORIZACIÓN: Añadimos el token al Header de la petición HTTP.
             Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
+            // 2. PETICIÓN ESPECÍFICA: Llamamos al endpoint que devuelve UN solo vehículo.
+            // Usamos 'GetFromJsonAsync' para simplificar: pide el JSON y lo convierte a objeto en un solo paso.
             var response = await Http.GetFromJsonAsync<ApiResponse<VehiculoResponse>>($"api/vehiculos/{Matricula}");
 
             if (response != null && response.Success)
             {
+                // 3. ASIGNACIÓN: Guardamos los datos recibidos en nuestra variable local 'vehiculo'.
                 vehiculo = response.Data;
             }
         }
         catch (Exception ex)
         {
+            // CONTROL DE ERRORES: Registramos en consola si la API falla o la matrícula no existe.
             Console.WriteLine($"Error al cargar detalles: {ex.Message}");
         }
     }
 
+    // --- NAVEGACIÓN ---
+    // Método sencillo para regresar a la lista principal sin recargar la página entera.
     private void Volver() => Navigation.NavigateTo("/catalogo");
 }
