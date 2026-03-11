@@ -10,14 +10,6 @@
     Bienvenido al sistema. Estás conectado desde: <strong>@plataforma</strong>
 </div>
 
-<div class="mt-4">
-    <label>Buscar vehículo por modelo:</label>
-    <input type="text" @bind="busqueda" @bind:event="oninput" class="form-control" placeholder="Ej: Toyota..." />
-
-    <p class="mt-2">
-        Filtrando por: <strong>@busqueda</strong>
-    </p>
-</div>
 
 @code {
     private string? plataforma;
