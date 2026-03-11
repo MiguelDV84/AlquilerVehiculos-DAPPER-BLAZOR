@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @using WebApiNet.Shared.DTOs.Auth
 @using WebApiNet.Shared.DTOs.Common
+
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -69,8 +70,7 @@
                 if (result != null && result.Success)
                 {
                     // Guardamos los datos en el navegador para que el Frontend los recuerde
-                    await JS.InvokeVoidAsync("localStorage.setItem", "token", result.Data.Token);
-                    await JS.InvokeVoidAsync("localStorage.setItem", "usuarioNombre", result.Data.User.Nombre);
+                    await JS.InvokeVoidAsync("localStorage.setItem", "User", result.Data.User);
                 
                     // Redirigir al usuario a la página principal o dashboard
                     Navigation.NavigateTo("/", forceLoad: true);

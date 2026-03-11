@@ -1,4 +1,5 @@
-﻿using WebApiNet.Infrastructure.Repositories.Auth;
+﻿using WebApiNet.Infrastructure.Repositories.AlquilerRepo;
+using WebApiNet.Infrastructure.Repositories.Auth;
 using WebApiNet.Infrastructure.Repositories.Vehiculos;
 
 namespace WebApiNet.Infrastructure.Repositories.UnitOfWork
@@ -7,5 +8,6 @@ namespace WebApiNet.Infrastructure.Repositories.UnitOfWork
     {
         IVehiculoRepository Vehiculo { get; }
         IAuthRepository Auth { get; }
+        IAlquilerRepository Alquiler { get; }
     }
 }

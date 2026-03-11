@@ -5,8 +5,6 @@ using MySqlConnector;
 using System.Data;
 using System.Text;
 using WebApiNet.Applicacion.DependencyInjection;
-using WebApiNet.Application.Services;
-using WebApiNet.Core.Interfaces;
 using WebApiNet.Infrastructure.Data;
 using WebApiNet.Infrastructure.DependencyInjection;
 using WebApiNet.Presentation.Endpoints;
@@ -21,7 +19,6 @@ builder.Services
     .AddHttpContextAccessor();
 
 builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
-builder.Services.AddScoped<IAlquilerService, AlquilerService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -84,6 +81,7 @@ app.UseAuthorization();
 
 app.MapVehiculoEndpoints();
 app.MapAuthEndpoints();
+app.MapAlquilerEndpoints();
 app.MapControllers();
 
 app.Run();

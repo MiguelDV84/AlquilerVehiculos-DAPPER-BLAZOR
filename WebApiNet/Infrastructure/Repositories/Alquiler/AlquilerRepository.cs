@@ -22,12 +22,12 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
             
             string procedureName = "sp_insert_alquiler";
             var parameters = new DynamicParameters();
-            parameters.Add("@p_fecha_alquiler", alquiler.FechaAlquiler);
-            parameters.Add("@p_fecha_devolucion_prevista", alquiler.FechaDevolucionPrevista);
-            parameters.Add("@p_fecha_devolucion_real", alquiler.FechaDevolucionReal);
-            parameters.Add("@p_precio", alquiler.Precio);
             parameters.Add("@p_dni_cliente", alquiler.ClienteDni);
             parameters.Add("@p_matricula_vehiculo", alquiler.VehiculoMatricula);
+            parameters.Add("@p_fecha_alquiler", alquiler.FechaAlquiler.ToDateTime(TimeOnly.MinValue), DbType.Date);
+            parameters.Add("@p_fecha_devolucion_prevista", alquiler.FechaDevolucionPrevista.ToDateTime(TimeOnly.MinValue), DbType.Date);
+            parameters.Add("@p_fecha_devolucion_real", alquiler.FechaDevolucionReal?.ToDateTime(TimeOnly.MinValue), DbType.Date);
+            parameters.Add("@p_precio", alquiler.Precio);
 
             await connection.ExecuteAsync(
                 procedureName, 
@@ -130,6 +130,60 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
                 );
 
             return entity;
+        }
+
+        public async Task<IEnumerable<Alquiler>> GetAllByDniAsync(string dni)
+        {
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_obtener_alquileres_por_cliente";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_dni_cliente", dni);
+
+            var alquileres = await connection.QueryAsync<Alquiler>(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return alquileres;
+        }
+
+        public async Task<Alquiler?> GetActiveByDniAndMatriculaAsync(string dni, string matricula)
+        {
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_obtener_alquiler_activo";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_dni_cliente", dni);
+            parameters.Add("@p_matricula_vehiculo", matricula);
+
+            var alquiler = await connection.QueryFirstOrDefaultAsync<Alquiler>(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            return alquiler;
+        }
+
+        public async Task<Alquiler> FinalizarAlquilerAsync(int id, DateOnly fechaDevolucionReal)
+        {
+            using var connection = _context.CreateConnection();
+
+            string procedureName = "sp_finalizar_alquiler";
+            var parameters = new DynamicParameters();
+            parameters.Add("@p_id", id);
+            parameters.Add("@p_fecha_devolucion_real", fechaDevolucionReal);
+
+            await connection.ExecuteAsync(
+                procedureName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+            var alquiler = await GetByIdAsync(id);
+            return alquiler!;
         }
     }
 }

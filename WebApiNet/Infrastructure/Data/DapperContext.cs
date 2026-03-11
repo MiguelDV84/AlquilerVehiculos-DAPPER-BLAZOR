@@ -1,5 +1,7 @@
-﻿using MySqlConnector;
+﻿using Dapper;
+using MySqlConnector;
 using System.Data;
+using WebApiNet.Infrastructure.Data.TypeHandlers;
 
 namespace WebApiNet.Infrastructure.Data
 {
@@ -10,6 +12,7 @@ namespace WebApiNet.Infrastructure.Data
         public DapperContext(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
         }
 
         public IDbConnection CreateConnection()

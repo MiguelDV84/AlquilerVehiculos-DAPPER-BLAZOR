@@ -7,9 +7,9 @@ using WebApiNet.Shared.DTOs.Common;
 
 namespace WebApiNet.Controllers
 {
-    [ApiController]
+   /* [ApiController]
     [Route("api/[controller]")]
-    public class AlquilerController : ControllerBase
+   public class AlquilerController : ControllerBase
     {
         private readonly IAlquilerService _alquilerService;
 
@@ -164,5 +164,5 @@ namespace WebApiNet.Controllers
                 });
             }
         }
-    }
+    }*/
 }

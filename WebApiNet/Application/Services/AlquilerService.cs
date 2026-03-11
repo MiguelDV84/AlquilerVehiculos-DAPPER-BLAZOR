@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebApiNet.Core.Entities;
+using WebApiNet.Core.Exceptions;
 using WebApiNet.Core.Interfaces;
-using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.Repositories.UnitOfWork;
 using WebApiNet.Shared.DTOs.Alquiler;
 using WebApiNet.Shared.Enums;
 
@@ -11,13 +11,13 @@ namespace WebApiNet.Application.Services
 {
     public class AlquilerService : IAlquilerService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AlquilerService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public AlquilerService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -25,63 +25,46 @@ namespace WebApiNet.Application.Services
         public async Task<AlquilerResponse> CreateAlquilerAsync(AlquilerRequest request)
         {
             var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                throw new KeyNotFoundException("No se ha encontrado DNI.");
+                throw new UnauthorizedAccessException("No se ha encontrado DNI en el token.");
 
-            var vehiculo = await _context.Vehiculos.FindAsync(request.VehiculoMatricula) ??
-                throw new KeyNotFoundException("No existe un vehiculo para esa matricula");
+            var vehiculo = await _unitOfWork.Vehiculo.GetByIdAsync(request.VehiculoMatricula) ??
+                throw new NotFoundException($"No existe un vehículo con la matrícula {request.VehiculoMatricula}.");
 
             if (vehiculo.Estado != EstadoVehiculo.Disponible)
-            {
-                throw new InvalidOperationException("El vehiculo no esta disponible para alquiler");
-            }
+                throw new InvalidOperationException("El vehículo no está disponible para alquiler.");
 
             var alquiler = _mapper.Map<Alquiler>(request);
-
             alquiler.ClienteDni = dni;
             alquiler.Precio = vehiculo.Precio;
             alquiler.FechaAlquiler = DateOnly.FromDateTime(DateTime.UtcNow);
+
             vehiculo.Estado = EstadoVehiculo.Alquilado;
 
-            _context.Alquileres.Add(alquiler);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Alquiler.AddAsync(alquiler);
+            await _unitOfWork.Vehiculo.UpdateAsync(vehiculo.Matricula, vehiculo);
 
-
-            return new AlquilerResponse {
-                FechaAlquiler = alquiler.FechaAlquiler,
-                FechaDevolucionPrevista = alquiler.FechaDevolucionPrevista,
-                Precio = alquiler.Precio,
-                ClienteDni = alquiler.ClienteDni,
-                VehiculoMatricula = alquiler.VehiculoMatricula
-            };
+            return _mapper.Map<AlquilerResponse>(alquiler);
         }
 
         public async Task<IEnumerable<AlquilerResponse>> GetAllAlquileresAsync()
         {
             var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                throw new KeyNotFoundException("No se ha encontrado DNI.");
-            
-            var alquiler = await _context.Alquileres
-                .Where(a => a.ClienteDni == dni)
-                .ToListAsync();
+                throw new UnauthorizedAccessException("No se ha encontrado DNI en el token.");
 
-            var response = _mapper.Map<IEnumerable<AlquilerResponse>>(alquiler);
+            var alquileres = await _unitOfWork.Alquiler.GetAllByDniAsync(dni);
 
-            return response;
+            return _mapper.Map<IEnumerable<AlquilerResponse>>(alquileres);
         }
 
         public async Task<AlquilerResponse> GetAlquilerDtoAsync(string vehiculoMatricula)
         {
             var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                throw new KeyNotFoundException("No se ha encontrado DNI.");
+                throw new UnauthorizedAccessException("No se ha encontrado DNI en el token.");
 
-            var alquiler = await _context.Alquileres
-                .Where(a => a.ClienteDni == dni && a.VehiculoMatricula == vehiculoMatricula)
-                .FirstAsync() ??
-                throw new KeyNotFoundException("No hay alquileres para el cliente");
+            var alquiler = await _unitOfWork.Alquiler.GetActiveByDniAndMatriculaAsync(dni, vehiculoMatricula) ??
+                throw new NotFoundException("No se encontró un alquiler activo para ese vehículo.");
 
-            var response = _mapper.Map<AlquilerResponse>(alquiler);
-
-            return response;
+            return _mapper.Map<AlquilerResponse>(alquiler);
         }
 
         public async Task<AlquilerFinalizadoResponse> FinishAlquilerAsync(string vehiculoMatricula)
@@ -89,24 +72,19 @@ namespace WebApiNet.Application.Services
             var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                 throw new UnauthorizedAccessException("No se ha encontrado DNI en el token.");
 
-            var alquiler = await _context.Alquileres
-                .Where(a => a.ClienteDni == dni
-                         && a.VehiculoMatricula == vehiculoMatricula
-                         && a.FechaDevolucionReal == null)
-                .FirstOrDefaultAsync() ??
-                throw new KeyNotFoundException("No tienes un alquiler activo para este vehículo.");
+            var alquiler = await _unitOfWork.Alquiler.GetActiveByDniAndMatriculaAsync(dni, vehiculoMatricula) ??
+                throw new NotFoundException("No tienes un alquiler activo para este vehículo.");
 
-            var vehiculo = await _context.Vehiculos.FindAsync(vehiculoMatricula) ??
-                throw new KeyNotFoundException("Vehículo no encontrado.");
+            var vehiculo = await _unitOfWork.Vehiculo.GetByIdAsync(vehiculoMatricula) ??
+                throw new NotFoundException($"No existe un vehículo con la matrícula {vehiculoMatricula}.");
 
+            var fechaDevolucion = DateOnly.FromDateTime(DateTime.UtcNow);
             vehiculo.Estado = EstadoVehiculo.Disponible;
-            alquiler.FechaDevolucionReal = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            await _context.SaveChangesAsync();
+            var alquilerFinalizado = await _unitOfWork.Alquiler.FinalizarAlquilerAsync(alquiler.Id, fechaDevolucion);
+            await _unitOfWork.Vehiculo.UpdateAsync(vehiculo.Matricula, vehiculo);
 
-            var response = _mapper.Map<AlquilerFinalizadoResponse>(alquiler);
-
-            return response;
+            return _mapper.Map<AlquilerFinalizadoResponse>(alquilerFinalizado);
         }
     }
 }

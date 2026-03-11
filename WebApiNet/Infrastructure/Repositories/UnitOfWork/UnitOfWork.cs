@@ -1,4 +1,5 @@
 ﻿using WebApiNet.Infrastructure.Data;
+using WebApiNet.Infrastructure.Repositories.AlquilerRepo;
 using WebApiNet.Infrastructure.Repositories.Auth;
 using WebApiNet.Infrastructure.Repositories.Vehiculos;
 
@@ -8,7 +9,8 @@ namespace WebApiNet.Infrastructure.Repositories.UnitOfWork
     {
         private readonly DapperContext _context;
         private IVehiculoRepository? _vehiculoRepository;
-        private IAuthRepository? authRepository;
+        private IAuthRepository? _authRepository;
+        private IAlquilerRepository? _alquilerRepository;
 
         public UnitOfWork(DapperContext context)
         {
@@ -19,7 +21,9 @@ namespace WebApiNet.Infrastructure.Repositories.UnitOfWork
             _vehiculoRepository ??= new VehiculoRepository(_context);
 
         public IAuthRepository Auth =>
-            authRepository ??= new AuthRepository(_context);
+            _authRepository ??= new AuthRepository(_context);
 
+        public IAlquilerRepository Alquiler =>
+            _alquilerRepository ??= new AlquilerRepository(_context);
     }
 }

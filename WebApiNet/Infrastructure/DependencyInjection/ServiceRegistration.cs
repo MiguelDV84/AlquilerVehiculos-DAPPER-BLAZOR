@@ -13,9 +13,7 @@ namespace WebApiNet.Infrastructure.DependencyInjection
         {
             services.AddSingleton<DapperContext>();
             services.AddTransient<IVehiculoRepository, VehiculoRepository>();
-
             services.AddTransient<IAuthRepository, AuthRepository>();
-            services.AddTransient<IAuthService, AuthService>();
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
