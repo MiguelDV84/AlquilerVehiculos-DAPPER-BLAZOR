@@ -44,9 +44,12 @@ CREATE TABLE IF NOT EXISTS `Alquileres` (
   KEY `IX_Alquileres_VehiculoMatricula` (`VehiculoMatricula`),
   CONSTRAINT `FK_Alquileres_Clientes_ClienteDni` FOREIGN KEY (`ClienteDni`) REFERENCES `Clientes` (`Dni`) ON DELETE RESTRICT,
   CONSTRAINT `FK_Alquileres_Vehiculos_VehiculoMatricula` FOREIGN KEY (`VehiculoMatricula`) REFERENCES `Vehiculos` (`Matricula`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.Alquileres: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.Alquileres: ~2 rows (aproximadamente)
+REPLACE INTO `Alquileres` (`Id`, `FechaAlquiler`, `FechaDevolucionPrevista`, `FechaDevolucionReal`, `Precio`, `ClienteDni`, `VehiculoMatricula`) VALUES
+	(1, '2026-03-11', '2026-03-15', '2026-03-11', 120.00, '01248796T', '4578JKL'),
+	(2, '2026-03-07', '2026-03-10', '2026-03-11', 150.00, '98547541P', '9999SPD');
 
 -- Volcando estructura para tabla WebApiNet.Clientes
 CREATE TABLE IF NOT EXISTS `Clientes` (
@@ -102,14 +105,29 @@ BEGIN
 END//
 DELIMITER ;
 
+-- Volcando estructura para procedimiento WebApiNet.sp_finalizar_alquiler
+DELIMITER //
+CREATE PROCEDURE `sp_finalizar_alquiler`(
+	IN `p_id` INT,
+	IN `p_fecha_devolucion_real` VARCHAR(50)
+)
+BEGIN
+	UPDATE Alquileres 
+	SET 
+		FechaDevolucionReal = p_fecha_devolucion_real
+	WHERE Id = p_id;
+
+END//
+DELIMITER ;
+
 -- Volcando estructura para procedimiento WebApiNet.sp_insert_alquiler
 DELIMITER //
 CREATE PROCEDURE `sp_insert_alquiler`(
 	IN `p_dni_cliente` VARCHAR(50),
-	IN `p_matricula_vehiculo` INT,
+	IN `p_matricula_vehiculo` VARCHAR(50),
 	IN `p_fecha_alquiler` DATE,
-	IN `p_fecha_alquiler_prevista` DATE,
-	IN `p_fecha_alquiler_real` DATE,
+	IN `p_fecha_devolucion_prevista` DATE,
+	IN `p_fecha_devolucion_real` DATE,
 	IN `p_precio` DECIMAL(18,2)
 )
 BEGIN
@@ -125,8 +143,8 @@ BEGIN
 	VALUES 
 	(
 		p_fecha_alquiler,
-		p_fecha_alquiler_prevista,
-		p_fecha_alquiler_real,
+		p_fecha_devolucion_prevista,
+		p_fecha_devolucion_real,
 		p_precio,
 		p_dni_cliente,
 		p_matricula_vehiculo
@@ -164,7 +182,7 @@ DELIMITER ;
 -- Volcando estructura para procedimiento WebApiNet.sp_insertar_vehiculo
 DELIMITER //
 CREATE PROCEDURE `sp_insertar_vehiculo`(
-	IN `p_matricula` VARCHAR(50),
+	IN `p_matricula` VARCHAR(255),
 	IN `p_tipo_vehiculo` INT,
 	IN `P_kilometraje` INT,
 	IN `p_marca` VARCHAR(50),
@@ -194,6 +212,20 @@ VALUES (
     p_litros_tanque, 
     p_estado
 );
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_alquiler_activo
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_alquiler_activo`(
+	IN `p_dni_cliente` VARCHAR(50),
+	IN `p_matricula_vehiculo` VARCHAR(50)
+)
+BEGIN
+	SELECT * FROM Alquileres
+	WHERE ClienteDni = p_dni_cliente
+	AND VehiculoMatricula = p_matricula_vehiculo
+	AND FechaDevolucionReal IS NULL;
 END//
 DELIMITER ;
 
