@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `Alquileres` (
   CONSTRAINT `FK_Alquileres_Vehiculos_VehiculoMatricula` FOREIGN KEY (`VehiculoMatricula`) REFERENCES `Vehiculos` (`Matricula`) ON DELETE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcando datos para la tabla WebApiNet.Alquileres: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla WebApiNet.Alquileres: ~0 rows (aproximadamente)
 REPLACE INTO `Alquileres` (`Id`, `FechaAlquiler`, `FechaDevolucionPrevista`, `FechaDevolucionReal`, `Precio`, `ClienteDni`, `VehiculoMatricula`) VALUES
 	(1, '2026-03-11', '2026-03-15', '2026-03-11', 120.00, '01248796T', '4578JKL'),
 	(2, '2026-03-07', '2026-03-10', '2026-03-11', 150.00, '98547541P', '9999SPD');
@@ -257,6 +257,17 @@ BEGIN
 	    SELECT * FROM Alquileres 
 	    ORDER BY Id 
 	    LIMIT p_page_size OFFSET v_offset;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento WebApiNet.sp_obtener_alquileres_por_cliente
+DELIMITER //
+CREATE PROCEDURE `sp_obtener_alquileres_por_cliente`(
+	IN `p_dni_cliente` VARCHAR(50)
+)
+BEGIN
+	SELECT * FROM Alquileres
+	WHERE ClienteDni = p_dni_cliente;
 END//
 DELIMITER ;
 
