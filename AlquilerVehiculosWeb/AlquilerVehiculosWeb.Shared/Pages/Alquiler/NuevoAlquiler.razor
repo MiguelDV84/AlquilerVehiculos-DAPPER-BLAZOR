@@ -1,0 +1,70 @@
+﻿@page "/NuevoAlquiler"
+@rendermode InteractiveServer
+@using WebApiNet.Shared.DTOs.Alquiler
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div>
+    <h2>Confirmar Alquiler</h2>
+
+    <EditForm Model="request" @OnValidSubmit="CrearAlquilerNuevo">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label>¿Cuándo piensas devolverlo?</label>
+            @* Vinculamos a tu DateOnly del Request *@
+            <InputDate @bind-Value="fechaInput" class="form-control" />
+            <ValidationMessage For="@(() => request.FechaDevolucionPrevista)" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Confirmar Reserva</button>
+        <a href="/catalogo" class="btn btn-secondary">Cancelar</a>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public string Matricula { get; set; }
+
+    private AlquilerRequest request = new AlquilerRequest();
+
+    private DateTime fechaInput = DateTime.Now.AddDays(1);
+
+    protected async Task OnInitialized()
+    {
+        request.VehiculoMatricula = Matricula;
+    }
+
+    private async Task CrearAlquilerNuevo()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage", "token");
+
+            Http.DefaultRequestHeaders.Authorization = null;
+            Http.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.PostAsJsonAsync("api/alquiler", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Alquiler creado con éxito.");
+                Navigation.NavigateTo("/alquiler");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await JS.InvokeVoidAsync("alert", "Sesión no válida. Por favor, inicia sesión.");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Error al crear el alquiler: {errorContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error al crear el alquiler: {ex.Message}");
+        }
+    }
+}

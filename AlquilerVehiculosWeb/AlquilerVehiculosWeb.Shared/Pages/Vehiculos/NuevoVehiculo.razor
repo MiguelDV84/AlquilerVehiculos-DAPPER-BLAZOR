@@ -24,12 +24,26 @@ else
             <div class="card-body">
                 <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarVehiculo">
                     <DataAnnotationsValidator />
+
                     <ValidationSummary class="alert alert-danger" />
 
                     <div class="mb-3">
-                        <label for="matricula" class="form-label">Matrícula:</label>
-                        <InputText @bind-Value="nuevoVehiculo.Matricula" class="form-control" placeholder="Ej: 1234BBB" />
-                        <small class="form-text text-muted">Formato: 4 números + 3 letras (ej: 1234BBB)</small>
+                        <label class="form-label">Matrícula:</label>
+                        <div class="input-group">
+                            <InputText @bind-Value="nuevoVehiculo.Matricula"
+                                       @onblur="ValidarMatricula"
+                                       class="@(string.IsNullOrEmpty(mensajeErrorMatricula) ? "form-control" : "form-control is-invalid")" />
+                            @if (validandoMatricula)
+                            {
+                                <span class="input-group-text">
+                                    <div class="spinner-border spinner-border-sm text-primary"></div>
+                                </span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(mensajeErrorMatricula))
+                        {
+                            <div class="text-danger mt-1 small">@mensajeErrorMatricula</div>
+                        }
                     </div>
 
                     <div class="mb-3">
@@ -80,90 +94,4 @@ else
             </div>
         </div>
     </div>
-}
-
-@code {
-    // Control de seguridad para proteger la ruta
-    private bool isAuthorized = false;
-
-    // --- MODELO DE SOLICITUD ---
-    // Instanciamos un objeto vacío de tipo VehiculoRequest.
-    // Este objeto recogerá todos los datos del formulario mediante bind-value.
-    private VehiculoRequest nuevoVehiculo = new();
-
-    // --- CICLO DE VIDA ---
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Verificamos si el usuario tiene el token para permitirle crear vehículos.
-            var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
-
-            if (string.IsNullOrEmpty(token))
-            {
-                Navigation.NavigateTo("/login");
-            }
-            else
-            {
-                isAuthorized = true;
-                StateHasChanged(); // Mostramos el formulario tras la validación
-            }
-        }
-    }
-
-    // --- ACCIÓN: GUARDAR (POST) ---
-    private async Task GuardarVehiculo()
-    {
-        try
-        {
-            // 1. RECOGIDA DE TOKEN: Necesario para autorizar la creación en la API.
-            var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
-
-            // 2. CONFIGURACIÓN DE CABECERAS:
-            // Limpiamos cabeceras previas y añadimos el Bearer Token actual.
-            Http.DefaultRequestHeaders.Authorization = null;
-            Http.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            // 3. ENVÍO DE DATOS (HTTP POST):
-            // Enviamos el objeto 'nuevoVehiculo' a la API.
-            // El método PostAsJsonAsync se encarga de convertir nuestro objeto C# a formato JSON.
-            var response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
-
-            if (response.IsSuccessStatusCode)
-            {
-                // ÉXITO: Feedback positivo al usuario y redirección al catálogo para ver el nuevo coche.
-                await JS.InvokeVoidAsync("alert", "Vehículo creado exitosamente");
-                Navigation.NavigateTo("/catalogo");
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                await JS.InvokeVoidAsync("alert", "Sesión no válida. Por favor, inicia sesión.");
-                Navigation.NavigateTo("/login");
-            }
-            else
-            {
-                // ERROR DE VALIDACIÓN O BBDD: Leemos el mensaje de error que nos manda la API (compañero).
-                var errorContent = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Error al guardar: {errorContent}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error de conexión: {ex.Message}");
-            await JS.InvokeVoidAsync("alert", "Error de conexión con el servidor.");
-        }
-    }
-
-    // --- CANCELAR ---
-    private async Task Cancelar()
-    {
-        // Validación de salida para no perder datos por un clic accidental.
-        var confirmacion = await JS.InvokeAsync<bool>("confirm", "¿Deseas cancelar? Se perderán los datos introducidos.");
-
-        if (confirmacion)
-        {
-            Navigation.NavigateTo("/catalogo");
-        }
-    }
 }
