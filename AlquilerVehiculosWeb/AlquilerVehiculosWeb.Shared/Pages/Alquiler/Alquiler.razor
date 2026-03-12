@@ -20,6 +20,31 @@
 else
 {
     <div class="container py-4">
+
+        <div class="bg-light p-4 rounded-4 shadow-sm mb-5 border">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="fw-bold mb-1">Catálogo de Alquileres</h2>
+                    <p class="text-muted">Gestiona la flota y disponibilidad en tiempo real.</p>
+                    <div class="input-group input-group-lg shadow-sm mt-3">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input type="text"
+                               class="form-control border-start-0 ps-0"
+                               placeholder="Escribe la matricula (ej: 1234BBB)..."
+                               @bind="textoBusqueda"
+                               @bind:event="oninput" />
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <button class="btn btn-success btn-lg shadow-sm" @onclick="IrANuevoAlquiler">
+                        <i class="bi bi-plus-circle me-2"></i>Nuevo Alquiler
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <h2 class="mb-4 text-primary"><i class="bi bi- calendar-range"></i> Gestión de Alquileres</h2>
 
         @if (Listadoalquileres == null)
@@ -38,7 +63,7 @@ else
         else
         {
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var alquiler in Listadoalquileres)
+                @foreach (var alquiler in AlquilerFiltrados)
                 {
                     <div class="col">
                         <div class="card h-100 shadow-sm border-0">
@@ -64,6 +89,27 @@ else
                                     </p>
                                 }
                             </div>
+                            <div class="card-footer">
+                                <!--<button class="btn btn-primary btn-sm me-2" @onclick="() => IrADetallesAlquiler(alquiler.Id)">
+                                    <i class="bi bi-eye"></i> Detalles
+                                </button>
+                                <button class="btn btn-secondary btn-sm me-2" @onclick="() => IrAEditarAlquiler(alquiler.Id)">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </button>-->
+                                @if (!alquiler.FechaDevolucionReal.HasValue)
+                                {
+                                    <button class="btn btn-danger btn-sm" @onclick="() => FinalizarAquiler(alquiler.VehiculoMatricula)">
+                                        <i class="bi bi-x-circle"></i> Finalizar Alquiler
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary p-2">
+                                        <i class="bi bi-check-circle-fill"></i> Alquiler Completado
+                                    </span>
+                                }
+
+                            </div>
                         </div>
                     </div>
                 }
@@ -72,66 +118,3 @@ else
     </div>
 }
 
-
-@code {
-    // Lista de alquileres que se mostrarán en la página.
-    private List<AlquilerResponse>? Listadoalquileres;
-
-    // Switch booleano para controlar si el usuario tiene permiso de ver la página.
-    Boolean isAuthorized = false;
-
-    // --- CICLO DE VIDA: AL CARGAR LA PÁGINA ---
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            var MiToken = await JS.InvokeAsync<string>("localStorage.getItem", "token");
-
-            if(!string.IsNullOrEmpty(MiToken))
-            {
-                isAuthorized = true;
-                // Si hay token, autorizamos la vista y disparamos la carga de datos.
-                isAuthorized = true;
-                await CargarAlquileres(MiToken);
-
-                // Notificamos a Blazor que el estado ha cambiado para que pinte los coches.
-                StateHasChanged();
-            }
-            else
-            {
-                // Si no hay token, redirigimos al login.
-                Navigation.NavigateTo("/login");
-            }
-        }
-    }
-
-    private async Task CargarAlquileres(String Token)
-    {
-        try
-        {
-            // Configuramos el HttpClient para incluir el token en la cabecera de autorización.
-            Http.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
-
-            // Hacemos la petición GET a la API para obtener los alquileres.
-            var result = await Http.GetFromJsonAsync<ApiResponse<List<AlquilerResponse>>>("api/alquiler");
-            if (result != null && result.Success)
-            {
-                // Si la respuesta es exitosa, asignamos los datos a la variable que se muestra en la UI.
-                Listadoalquileres = result.Data;
-            }
-            else
-            {
-                // Si la respuesta no es exitosa, mostramos una alerta con el mensaje de error.
-                await JS.InvokeVoidAsync("alert", $"Error al cargar alquileres: {result?.Message ?? "Respuesta vacía"}");
-            }
-        }
-        catch (Exception ex)
-        {
-            // En caso de error, mostramos una alerta y redirigimos al login (posible token expirado).
-            await JS.InvokeVoidAsync("alert", $"Error al cargar alquileres: {ex.Message}");
-            Navigation.NavigateTo("/");
-        }
-    }
-
-}
