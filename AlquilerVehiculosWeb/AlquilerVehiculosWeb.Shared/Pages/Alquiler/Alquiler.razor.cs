@@ -37,8 +37,7 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
                 if (!string.IsNullOrEmpty(MiToken))
                 {
                     isAuthorized = true;
-                    // Si hay token, autorizamos la vista y disparamos la carga de datos.
-                    isAuthorized = true;
+                    
                     await CargarAlquileres(MiToken);
 
                     // Notificamos a Blazor que el estado ha cambiado para que pinte los coches.
@@ -86,14 +85,14 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
             Navigation.NavigateTo("/alquiler/nuevo/");
         }
 
-        private void IrAEditarAlquiler(int alquilerId)
+        private void IrAEditarAlquiler(String Matricula)
         {
-            Navigation.NavigateTo($"/alquiler/editar/{alquilerId}");
+            Navigation.NavigateTo($"/alquiler/editar/{Matricula}");
         }
 
-        private void IrADetallesAlquiler(int alquilerId)
+        private void IrADetallesAlquiler(String matricula)
         {
-            Navigation.NavigateTo($"/alquiler/detalles/{alquilerId}");
+            Navigation.NavigateTo($"/alquiler/detalle/{matricula}");
         }
 
         private async Task FinalizarAquiler(String matricula)

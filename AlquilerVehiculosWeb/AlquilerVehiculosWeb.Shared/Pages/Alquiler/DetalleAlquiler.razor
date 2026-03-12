@@ -1,0 +1,63 @@
+﻿@page "/alquiler/detalle/{Matricula}"
+@using WebApiNet.Shared.DTOs.Alquiler
+@using WebApiNet.Shared.DTOs.Common
+@using WebApiNet.Shared.Enums
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+
+@if (!isAuthorized)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Verificando autorización...</p>
+    </div>
+}
+else if (detalleAlquiler == null)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-secondary" role="status"></div>
+        <p>Cargando detalles del alquiler @Matricula...</p>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-secondary">Ficha de Alquiler</h2>
+            <button class="btn btn-outline-primary" @onclick="@IrAListadoAlquileres">
+                <i class="bi bi-arrow-left"></i> Volver
+            </button>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white py-3">
+                <h4 class="mb-0">Detalles del Alquiler</h4>
+            </div>
+            <div class="card-body bg-gradient p-4">
+                <div class="row">
+                    <div class="col-6 border-end">
+                        <div class="mb-3">
+                            <label class="fw-bold">Matrícula del Vehículo:</label>
+                            <span class="ms-2">@detalleAlquiler.VehiculoMatricula</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="fw-bold">Fecha de Inicio:</label>
+                            <span class="ms-2">@detalleAlquiler.FechaAlquiler.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+                    <div class="col-3 ps-md-4">
+                        <div class="mb-3">
+                            <label class="fw-bold">Precio Total:</label>
+                            <span class="ms-2 badge bg-success">@detalleAlquiler.Precio €</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="fw-bold">Fecha de Fin:</label>
+                            <span class="ms-2">@detalleAlquiler.FechaDevolucionPrevista.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
