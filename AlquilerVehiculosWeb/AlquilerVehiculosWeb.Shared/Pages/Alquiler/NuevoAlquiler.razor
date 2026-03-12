@@ -1,70 +1,122 @@
-﻿@page "/NuevoAlquiler"
+﻿@page "/alquiler/nuevo/"
 @rendermode InteractiveServer
 @using WebApiNet.Shared.DTOs.Alquiler
+@using WebApiNet.Shared.DTOs.Common
+@using WebApiNet.Shared.DTOs.Vehiculo
+@using WebApiNet.Shared.Paged
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<div>
-    <h2>Confirmar Alquiler</h2>
+@if (!isAuthorized)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Verificando autorización...</p>
+    </div>
+}
+else
+{
 
-    <EditForm Model="request" @OnValidSubmit="CrearAlquilerNuevo">
-        <DataAnnotationsValidator />
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm border-0 bg-light">
+                    <div class="card-body">
+                        <label class="fw-bold mb-2"><i class="bi bi-search"></i> Selecciona el Vehículo para alquilar:</label>
+                        <select class="form-select form-select-lg" @onchange="VehiculoSeleccionado">
+                            <option value="">-- Elige una matrícula --</option>
+                            @if (ListadoVehiculos != null)
+                            {
+                                @foreach (var v in ListadoVehiculos)
+                                {
+                                    <option value="@v.Matricula">@v.Matricula (@v.Marca @v.Modelo)</option>
+                                }
+                            }
+                        </select>
 
-        <div class="mb-3">
-            <label>¿Cuándo piensas devolverlo?</label>
-            @* Vinculamos a tu DateOnly del Request *@
-            <InputDate @bind-Value="fechaInput" class="form-control" />
-            <ValidationMessage For="@(() => request.FechaDevolucionPrevista)" />
+                        @if (vehiculoSeleccionado != null)
+                        {
+                            <div class="mt-4 p-3 border rounded bg-white shadow-sm">
+                                <h5 class="text-primary border-bottom pb-2">Detalles del Vehículo</h5>
+                                <div class="row">
+                                    <div class="col-12 text-center mb-3">
+                                        @* Si tienes imagen, la pones aquí *@
+                                        <i class="bi bi-car-front display-4"></i>
+                                    </div>
+                                    <div class="col-6"><strong>Marca:</strong> @vehiculoSeleccionado.Marca</div>
+                                    <div class="col-6"><strong>Modelo:</strong> @vehiculoSeleccionado.Modelo</div>
+                                    <div class="col-6 mt-2"><strong>Precio:</strong> <span class="badge bg-success">@vehiculoSeleccionado.Precio €/día</span></div>
+                                    <div class="col-6"><strong>Tipo de Vehiculo:</strong> 
+                                        <span class="ms-2">
+                                            @switch (@vehiculoSeleccionado.TipoVehiculo)
+                                            {
+                                                case 0:
+                                                    @:Furgoneta
+                                                    break;
+                                                case 1:
+                                                    @:Camión
+                                                    break;
+                                                case 2:
+                                                    @:Turismo
+                                                    break;
+                                                case 3:
+                                                    @:Deportivo
+                                                    break;
+                                                case 4:
+                                                    @:Monovolumen
+                                                    break;
+                                                case 5:
+                                                    @:Caravana
+                                                    break;
+                                                default:
+                                                    @:Desconocido
+                                                    break;
+                                            }
+                                        </span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="fw-bold mb-4">Confirmar Alquiler</h2>
+
+                        <EditForm Model="nuevoAlquiler" OnValidSubmit="CrearAlquilerNuevo">
+
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold"><i class="bi bi-calendar-event"></i> ¿Cuándo piensas devolverlo?</label>
+                                <InputDate @bind-Value="nuevoAlquiler.FechaDevolucionPrevista" class="form-control form-control-lg shadow-sm" />
+                                <div class="form-text">La fecha mínima es mañana.</div>
+                                <ValidationMessage For="@(() => nuevoAlquiler.FechaDevolucionPrevista)" class="text-danger mt-1" />
+                            </div>
+
+                            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                                <span class="fs-5">Total Estimado:</span>
+                                <span class="fs-4 fw-bold">@CalcularPrecioTotal().ToString("N2") €</span>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <button type="button" class="btn btn-secondary" @onclick="Cancelar">
+                                    <i class="bi bi-x-circle"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Guardar
+                                </button>
+                            </div>
+
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <button type="submit" class="btn btn-success">Confirmar Reserva</button>
-        <a href="/catalogo" class="btn btn-secondary">Cancelar</a>
-    </EditForm>
-</div>
-
-@code {
-    [Parameter] public string Matricula { get; set; }
-
-    private AlquilerRequest request = new AlquilerRequest();
-
-    private DateTime fechaInput = DateTime.Now.AddDays(1);
-
-    protected async Task OnInitialized()
-    {
-        request.VehiculoMatricula = Matricula;
-    }
-
-    private async Task CrearAlquilerNuevo()
-    {
-        try
-        {
-            var token = await JS.InvokeAsync<string>("localStorage", "token");
-
-            Http.DefaultRequestHeaders.Authorization = null;
-            Http.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await Http.PostAsJsonAsync("api/alquiler", request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                await JS.InvokeVoidAsync("alert", "Alquiler creado con éxito.");
-                Navigation.NavigateTo("/alquiler");
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                await JS.InvokeVoidAsync("alert", "Sesión no válida. Por favor, inicia sesión.");
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Error al crear el alquiler: {errorContent}");
-            }
-        }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Error al crear el alquiler: {ex.Message}");
-        }
-    }
+    </div>
 }

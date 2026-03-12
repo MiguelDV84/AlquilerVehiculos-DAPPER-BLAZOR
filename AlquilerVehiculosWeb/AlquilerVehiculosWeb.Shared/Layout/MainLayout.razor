@@ -16,6 +16,10 @@
                 <span class="fw-bold text-uppercase">RentDrive</span>
             </a>
 
+            <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
             @* MENÚ DE NAVEGACIÓN DINÁMICO *@
             <div class="collapse navbar-collapse @(isNavMenuCollapsed ? "" : "show")">
                 <ul class="navbar-nav mx-auto gap-lg-3">
@@ -78,6 +82,11 @@
     private string? usuarioNombre;
     private bool isNavMenuCollapsed = true;
     private bool isUserMenuOpen = false;
+
+    private void ToggleNavMenu()
+    {
+        isNavMenuCollapsed = !isNavMenuCollapsed;
+    }
 
     // --- SINCRONIZACIÓN DE ESTADO ---
     protected override async Task OnAfterRenderAsync(bool firstRender)
