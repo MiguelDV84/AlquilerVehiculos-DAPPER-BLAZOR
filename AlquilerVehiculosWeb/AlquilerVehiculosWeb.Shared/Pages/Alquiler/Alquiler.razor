@@ -38,7 +38,7 @@ else
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <button class="btn btn-success btn-lg shadow-sm" @onclick="IrANuevoAlquiler">
+                    <button class="btn btn-success btn-lg shadow-sm" @onclick="MostrarModalCrear">
                         <i class="bi bi-plus-circle me-2"></i>Nuevo Alquiler
                     </button>
                 </div>
@@ -72,48 +72,33 @@ else
                                 <span class="badge bg-success">@alquiler.Precio.ToString("N2") €</span>
                             </div>
                             <div class="card-body">
-                                <p class="card-text"><strong><i class="bi bi-person-vcard"></i> Cliente:</strong> @alquiler.ClienteDni</p>
-                                <p class="card-text"><strong><i class="bi bi-calendar-check"></i> Inicio:</strong> @alquiler.FechaAlquiler</p>
-                                <p class="card-text"><strong><i class="bi bi-calendar-event"></i> Prevista:</strong> @alquiler.FechaDevolucionPrevista</p>
+                                <p class="card-text"><strong>Cliente:</strong> @alquiler.ClienteDni</p>
+                                <p class="card-text"><strong>Inicio:</strong> @alquiler.FechaAlquiler</p>
+                                <p class="card-text"><strong>Prevista:</strong> @alquiler.FechaDevolucionPrevista</p>
 
                                 @if (alquiler.FechaDevolucionReal.HasValue)
                                 {
-                                    <p class="card-text text-success">
-                                        <strong><i class="bi bi-check-all"></i> Finalizado:</strong> @alquiler.FechaDevolucionReal.Value
-                                    </p>
+                                    <p class="card-text text-success"><strong>Finalizado:</strong> @alquiler.FechaDevolucionReal.Value</p>
                                 }
                                 else
                                 {
-                                    <p class="card-text text-warning">
-                                        <strong><i class="bi bi-clock-history"></i> Estado:</strong> Activo
-                                    </p>
+                                    <p class="card-text text-warning"><strong>Estado:</strong> Activo</p>
                                 }
                             </div>
-                            <div class="card-footer">
-                                <div class="d-flex gap-2 mt-auto">
+                            <div class="card-footer bg-white border-top-0">
+                                <div class="d-flex gap-2">
                                     @if (!alquiler.FechaDevolucionReal.HasValue)
                                     {
-                                        <button class="btn btn-primary btn-sm me-2" @onclick="() => IrADetallesAlquiler(alquiler.VehiculoMatricula)">
-                                            <i class="bi bi-eye"></i> Detalles
+                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => MostrarDetalle(alquiler.VehiculoMatricula)">
+                                            <i class="bi bi-eye"></i> Ver Detalle
                                         </button>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary p-2">
-                                            <i class="bi bi-eye-slash"></i> Detalles
-                                        </span>
-                                    }                                 
-                                    @if (!alquiler.FechaDevolucionReal.HasValue)
-                                    {
                                         <button class="btn btn-danger btn-sm" @onclick="() => FinalizarAquiler(alquiler.VehiculoMatricula)">
-                                            <i class="bi bi-x-circle"></i> Finalizar Alquiler
+                                            <i class="bi bi-check2-circle"></i> Finalizar
                                         </button>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary p-2">
-                                            <i class="bi bi-check-circle-fill"></i> Alquiler Completado
-                                        </span>
+                                        <span class="badge bg-secondary p-2 w-100">Completado</span>
                                     }
                                 </div>
                             </div>
@@ -123,5 +108,153 @@ else
             </div>
         }
     </div>
-}
 
+    // Este modal se muestra al hacer clic en "Ver Detalle" y muestra información detallada del alquiler seleccionado
+    @if (mostrarModalDetalle)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Detalles: @matriculaSeleccionada</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (detalleAlquiler == null)
+                        {
+                            <div class="text-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p>Cargando información...</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row">
+                                
+                                <div class="col-6">
+                                        <label class="fw-bold">Matrícula del Vehículo:</label>
+                                        <span class="ms-2">@detalleAlquiler.VehiculoMatricula</span>
+                                    </div>
+                                <div class="col-6">
+                                        <label class="fw-bold">Fecha de Inicio:</label>
+                                        <span class="ms-2">@detalleAlquiler.FechaAlquiler.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                <div class="col-6">
+                                    <label class="fw-bold">Precio Total:</label>
+                                    <span class="ms-2 badge bg-success">@CalcularPrecioTotalDetalle().ToString("N2") €</span>
+                                </div>
+                                <div class="col-6">
+                                    <label class="fw-bold">Fecha de Fin:</label>
+                                    <span class="ms-2">@detalleAlquiler.FechaDevolucionPrevista.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (mostrarModalCrear)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-plus-lg"></i> Registrar Nuevo Alquiler</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row">
+                            @* Columna Izquierda: Selección de Vehículo *@
+                            <div class="col-md-5 border-end">
+                                <label class="fw-bold mb-2">Vehículo Disponible:</label>
+                                <select class="form-select mb-3" @onchange="VehiculoSeleccionado">
+                                    <option value="">-- Selecciona Matrícula --</option>
+                                    @if (ListadoVehiculos != null)
+                                    {
+                                        @foreach (var v in ListadoVehiculos)
+                                        {
+                                            <option value="@v.Matricula">@v.Matricula (@v.Marca @v.Modelo)</option>
+                                        }
+                                    }
+                                </select>
+
+                                @if (vehiculoSeleccionado != null)
+                                {
+                                    <div class="mt-4 p-3 border rounded bg-white shadow-sm">
+                                        <h5 class="text-primary border-bottom pb-2">Detalles del Vehículo</h5>
+                                        <div class="row">
+                                            <div class="col-12 text-center mb-3">
+                                                <i class="bi bi-car-front display-4"></i>
+                                            </div>
+                                            <div class="col-6"><strong>Marca:</strong> @vehiculoSeleccionado.Marca</div>
+                                            <div class="col-6"><strong>Modelo:</strong> @vehiculoSeleccionado.Modelo</div>
+                                            <div class="col-6 mt-2"><strong>Precio:</strong> <span class="badge bg-success">@CalcularPrecioNuevoAlquiler().ToString("N2")</span></div>
+                                            <div class="col-6">
+                                                <strong>Tipo de Vehiculo:</strong>
+                                                <span class="ms-2">
+                                                    @switch (@vehiculoSeleccionado.TipoVehiculo)
+                                                    {
+                                                        case 0:
+                                                            @:Furgoneta
+                                                            break;
+                                                        case 1:
+                                                            @:Camión
+                                                            break;
+                                                        case 2:
+                                                            @:Turismo
+                                                            break;
+                                                        case 3:
+                                                            @:Deportivo
+                                                            break;
+                                                        case 4:
+                                                            @:Monovolumen
+                                                            break;
+                                                        case 5:
+                                                            @:Caravana
+                                                            break;
+                                                        default:
+                                                            @:Desconocido
+                                                            break;
+                                                    }
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="col-md-7 ps-md-4">
+                                <EditForm Model="nuevoAlquiler" OnValidSubmit="EjecutarCrearAlquiler">
+                                    <DataAnnotationsValidator />
+                                
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Fecha Devolución Prevista:</label>
+                                        <InputDate @bind-Value="nuevoAlquiler.FechaDevolucionPrevista" class="form-control" />
+                                        <ValidationMessage For="@(() => nuevoAlquiler.FechaDevolucionPrevista)" class="text-danger small" />
+                                    </div>
+
+                                    <div class="alert alert-info d-flex justify-content-between">
+                                        <span>Total Estimado:</span>
+                                        <span class="fw-bold">@CalcularPrecioNuevoAlquiler().ToString("N2") €</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 mt-4">
+                                        <button type="button" class="btn btn-light border" @onclick="CerrarModal">Cancelar</button>
+                                        <button type="submit" class="btn btn-success px-4">Confirmar y Guardar</button>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
