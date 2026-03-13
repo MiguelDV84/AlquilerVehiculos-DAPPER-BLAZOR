@@ -9,5 +9,6 @@ namespace WebApiNet.Core.Interfaces
         Task<AlquilerResponse> CreateAlquilerAsync(AlquilerRequest request);
         Task<IEnumerable<AlquilerResponse>> GetAllAlquileresAsync();
         Task<AlquilerFinalizadoResponse> FinishAlquilerAsync(string vehiculoMatricula);
+        Task<AlquilerResponse> UpdateAlquilerAsync(string vehiculoMatricula, AlquilerUpdateRequest request);
     }
 }

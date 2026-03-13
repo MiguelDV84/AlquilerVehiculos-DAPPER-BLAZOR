@@ -35,7 +35,12 @@ namespace WebApiNet.Application.Services
 
             var alquiler = _mapper.Map<Alquiler>(request);
             alquiler.ClienteDni = dni;
-            alquiler.Precio = vehiculo.Precio;
+
+            if(request.FechaDevolucionPrevista.CompareTo(DateOnly.FromDateTime(DateTime.UtcNow)) <= 0)
+                throw new InvalidOperationException("La fecha de devolución prevista debe ser posterior a la fecha actual.");
+
+            var precioAlquiler = vehiculo.Precio * (request.FechaDevolucionPrevista.DayNumber - DateOnly.FromDateTime(DateTime.UtcNow).DayNumber);
+            alquiler.Precio = precioAlquiler;
             alquiler.FechaAlquiler = DateOnly.FromDateTime(DateTime.UtcNow);
 
             vehiculo.Estado = EstadoVehiculo.Alquilado;
@@ -85,6 +90,24 @@ namespace WebApiNet.Application.Services
             await _unitOfWork.Vehiculo.UpdateAsync(vehiculo.Matricula, vehiculo);
 
             return _mapper.Map<AlquilerFinalizadoResponse>(alquilerFinalizado);
+        }
+
+        public async Task<AlquilerResponse> UpdateAlquilerAsync(string vehiculoMatricula, AlquilerUpdateRequest request)
+        {
+            var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                throw new UnauthorizedAccessException("No se ha encontrado DNI en el token.");
+
+            var vehiculo =  await _unitOfWork.Vehiculo.GetByIdAsync(vehiculoMatricula) ??
+                throw new NotFoundException($"No existe un vehículo con la matrícula {vehiculoMatricula}.");
+
+            var alquiler = await _unitOfWork.Alquiler.GetActiveByDniAndMatriculaAsync(dni, vehiculoMatricula) ??
+                throw new NotFoundException("No tienes un alquiler activo para este vehículo.");
+
+            alquiler.FechaDevolucionPrevista = request.FechaDevolucionPrevista;
+
+            var alquilerActualizado = await _unitOfWork.Alquiler.UpdateAsync(alquiler.Id, alquiler);
+
+            return _mapper.Map<AlquilerResponse>(alquilerActualizado);
         }
     }
 }

@@ -23,6 +23,9 @@ namespace WebApiNet.Presentation.Endpoints
 
             group.MapPut("/finalizar/{matricula}", FinalizarAlquiler)
                 .WithName("FinalizarAlquiler");
+
+            group.MapPut("/{matricula}", ActualizarAlquiler)
+                .WithName("ActualizarAlquiler");
         }
 
         private static async Task<IResult> CreateAlquiler(AlquilerRequest request, IAlquilerService service)
@@ -69,6 +72,18 @@ namespace WebApiNet.Presentation.Endpoints
             {
                 Success = true,
                 Message = "Alquiler finalizado correctamente",
+                Data = result
+            });
+        }
+
+        private static async Task<IResult> ActualizarAlquiler(IAlquilerService service, string matricula, AlquilerUpdateRequest request)
+        {
+            var result = await service.UpdateAlquilerAsync(matricula, request);
+
+            return Results.Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Alquiler actualizado correctamente",
                 Data = result
             });
         }
