@@ -39,7 +39,7 @@ else
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <button class="btn btn-success btn-lg shadow-sm" @onclick="IrANuevoVehiculo">
+                    <button class="btn btn-success btn-lg" @onclick="MostrarModalCrear">
                         <i class="bi bi-plus-circle me-2"></i>Nuevo Vehículo
                     </button>
                 </div>
@@ -61,6 +61,22 @@ else
         }
         else
         {
+            <div class="d-flex align-items-center gap-3 mb-4 bg-white p-3 rounded-3 shadow-sm">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="fw-bold small text-muted">Mostrar:</label>
+                    <select class="form-select form-select-sm" style="width: auto;" @onchange="CambiarTamañoPagina">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="75">75</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
             @* GRID DE TARJETAS *@
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 @if (VehiculoFiltrados != null && VehiculoFiltrados.Any())
@@ -104,10 +120,10 @@ else
 
                                     @* ACCIONES *@
                                     <div class="d-flex gap-2 mt-auto">
-                                        <button class="btn btn-outline-primary btn-sm flex-grow-1" @onclick="() => VerDetalles(v.Matricula)">
+                                        <button class="btn btn-outline-primary btn-sm flex-grow-1" @onclick="() => MostrarDetalle(v.Matricula)">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button class="btn btn-outline-warning btn-sm flex-grow-1" @onclick="() => EditarVehiculo(v.Matricula)">
+                                        <button class="btn btn-outline-warning btn-sm flex-grow-1" @onclick="() => MostrarModalModificar(v.Matricula)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button class="btn btn-outline-danger btn-sm flex-grow-1" @onclick="() => BorrarVehiculo(v.Matricula)">
@@ -135,7 +151,9 @@ else
                 </button>
 
                 <span class="fw-bold text-muted">
-                    Página <span class="text-primary">@currentPage</span> de @totalPages
+                    <span>Ir a la página:</span>
+                    <input type="number" class="text-primary" value="@currentPage" min="1" max="@totalPages" @onchange="IrAPaginaDirecto"/>
+                    <span class="text-muted small">de @totalPages</span>
                 </span>
 
                 <button class="btn btn-outline-primary shadow-sm"
@@ -145,5 +163,314 @@ else
                 </button>
             </div>
         }
+    </div>
+}
+
+@if (mostrarModalDetalles)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Ficha Técnica: @(vehiculoSeleccionado?.Matricula ?? "Cargando...")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    @if (vehiculoSeleccionado == null)
+                    {
+                        <div class="text-center p-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2">Obteniendo detalles del vehículo...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="card border-0">
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    @* Columna Imagen/Icono *@
+                                    <div class="col-md-4 text-center border-end d-flex flex-column align-items-center justify-content-center bg-light rounded-start">
+                                        <i class="bi bi-car-front display-1 text-secondary mb-3"></i>
+                                        <span class="badge bg-primary fs-5">@vehiculoSeleccionado.Precio.ToString("C") <small>/día</small></span>
+                                    </div>
+
+                                    @* Columna Datos *@
+                                    <div class="col-md-8">
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <label class="text-muted small d-block">Marca</label>
+                                                <span class="fw-bold">@vehiculoSeleccionado.Marca</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="text-muted small d-block">Modelo</label>
+                                                <span class="fw-bold">@vehiculoSeleccionado.Modelo</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="text-muted small d-block">Matrícula</label>
+                                                <span class="fw-bold font-monospace">@vehiculoSeleccionado.Matricula</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="text-muted small d-block">Kilometraje</label>
+                                                <span class="fw-bold">@vehiculoSeleccionado.Kilometraje.ToString("N0") km</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="text-muted small d-block">Capacidad Tanque</label>
+                                                <span class="fw-bold">@vehiculoSeleccionado.LitrosTanque L</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="text-muted small d-block">Estado Actual</label>
+                                                @switch (vehiculoSeleccionado.Estado)
+                                                {
+                                                    case 0:
+                                                        <span class="badge bg-success">Disponible</span>
+                                                        break;
+                                                    case 1:
+
+                                                        <span class="badge bg-danger">Alquilado</span>
+                                                        break;
+                                                    case 2:
+
+                                                        <span class="badge bg-warning text-dark">Mantenimiento</span>
+                                                        break;
+                                                    default:
+
+                                                        <span class="badge bg-secondary">@vehiculoSeleccionado.Estado</span>
+                                                        break;
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer bg-light">
+                    <button class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+} 
+
+
+@if (mostrarModalCrear)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered shadow-lg">
+            <div class="modal-content border-0">
+                @* Cabecera del Modal *@
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Vehículo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                </div>
+
+                @* Cuerpo del Modal *@
+                <div class="modal-body p-4">
+                    <EditForm Model="@nuevoVehiculo" OnValidSubmit="GuardarNuevoVehiculo">
+                        <DataAnnotationsValidator />
+                        
+                        <ValidationSummary class="alert alert-danger py-2 small" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Matrícula</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="bi bi-card-text text-primary"></i>
+                                    </span>
+                                    <InputText @bind-Value="nuevoVehiculo.Matricula"
+                                               @onblur="ValidarMatricula"
+                                               class="@(string.IsNullOrEmpty(mensajeErrorMatricula) ? "form-control border-start-0" : "form-control border-start-0 is-invalid")"
+                                               placeholder="0000XXX" />
+                                    @if (validandoMatricula)
+                                    {
+                                        <span class="input-group-text bg-white">
+                                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                                        </span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(mensajeErrorMatricula))
+                                {
+                                    <div class="text-danger mt-1 small fw-bold">
+                                        <i class="bi bi-exclamation-circle me-1"></i>@mensajeErrorMatricula
+                                    </div>
+                                }
+                                <ValidationMessage For="@(() => nuevoVehiculo.Matricula)" class="text-danger small" />
+                            </div>
+
+                            @* Tipo de Vehículo *@
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Tipo de Vehículo</label>
+                                <InputSelect @bind-Value="nuevoVehiculo.TipoVehiculo" class="form-select">
+                                    <option value="">-- Seleccionar --</option>
+                                    @foreach (var tipo in Enum.GetValues<TipoVehiculo>())
+                                    {
+                                        <option value="@tipo">@tipo</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => nuevoVehiculo.TipoVehiculo)" class="text-danger small" />
+                            </div>
+
+                            @* Marca *@
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Marca</label>
+                                <InputText @bind-Value="nuevoVehiculo.Marca" class="form-control" placeholder="Ej: Porsche" />
+                                <ValidationMessage For="@(() => nuevoVehiculo.Marca)" class="text-danger small" />
+                            </div>
+
+                            @* Modelo *@
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Modelo</label>
+                                <InputText @bind-Value="nuevoVehiculo.Modelo" class="form-control" placeholder="Ej: 911 Carrera" />
+                                <ValidationMessage For="@(() => nuevoVehiculo.Modelo)" class="text-danger small" />
+                            </div>
+
+                            @* Precio por día *@
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Precio / día</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="nuevoVehiculo.Precio" class="form-control" />
+                                </div>
+                                <ValidationMessage For="@(() => nuevoVehiculo.Precio)" class="text-danger small" />
+                            </div>
+
+                            @* Kilometraje *@
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Kilometraje (km)</label>
+                                <InputNumber @bind-Value="nuevoVehiculo.Kilometraje" class="form-control" />
+                                <ValidationMessage For="@(() => nuevoVehiculo.Kilometraje)" class="text-danger small" />
+                            </div>
+
+                            @* Litros Tanque *@
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Capacidad (L)</label>
+                                <InputNumber @bind-Value="nuevoVehiculo.LitrosTanque" class="form-control" />
+                                <ValidationMessage For="@(() => nuevoVehiculo.LitrosTanque)" class="text-danger small" />
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25" />
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary px-4" @onclick="CerrarModal">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-success px-4" disabled="@(!string.IsNullOrEmpty(mensajeErrorMatricula) || validandoMatricula)">
+                                <i class="bi bi-save me-2"></i>Guardar Vehículo
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@if (mostrarModalModificar)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered shadow-lg">
+            <div class="modal-content border-0">
+                
+                @* Cabecera del Modal *@
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Vehículo: @(matriculaEnEdicion ?? "Cargando...")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+
+                @* Cuerpo del Modal *@
+                <div class="modal-body p-4">
+                    @if (modeloEdicion == null)
+                    {
+                        <div class="text-center p-5">
+                            <div class="spinner-border text-warning" role="status"></div>
+                            <p class="mt-2 text-muted">Cargando datos del vehículo...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="@modeloEdicion" OnValidSubmit="GuardarEdicion">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="alert alert-danger py-2 small" />
+
+                            <div class="row">
+                                @* Marca *@
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Marca</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0">
+                                            <i class="bi bi-tag text-warning"></i>
+                                        </span>
+                                        <InputText @bind-Value="modeloEdicion.Marca" class="form-control border-start-0" placeholder="Ej: Porsche" />
+                                    </div>
+                                    <ValidationMessage For="@(() => modeloEdicion.Marca)" class="text-danger small" />
+                                </div>
+
+                                @* Modelo *@
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Modelo</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0">
+                                            <i class="bi bi-car-front text-warning"></i>
+                                        </span>
+                                        <InputText @bind-Value="modeloEdicion.Modelo" class="form-control border-start-0" placeholder="Ej: 911 Carrera" />
+                                    </div>
+                                    <ValidationMessage For="@(() => modeloEdicion.Modelo)" class="text-danger small" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                @* Precio por día *@
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Precio / día</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber @bind-Value="modeloEdicion.Precio" Format="N0" class="form-control" />
+                                    </div>
+                                    <ValidationMessage For="@(() => modeloEdicion.Precio)" class="text-danger small" />
+                                </div>
+
+                                @* Kilometraje *@
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Kilometraje (km)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-speedometer2"></i></span>
+                                        <InputNumber @bind-Value="modeloEdicion.Kilometraje" class="form-control" />
+                                    </div>
+                                    <ValidationMessage For="@(() => modeloEdicion.Kilometraje)" class="text-danger small" />
+                                </div>
+
+                                @* Litros Tanque *@
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Capacidad (L)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-fuel-pump"></i></span>
+                                        <InputNumber @bind-Value="modeloEdicion.LitrosTanque" class="form-control" />
+                                    </div>
+                                    <ValidationMessage For="@(() => modeloEdicion.LitrosTanque)" class="text-danger small" />
+                                </div>
+                            </div>
+
+                            @* Botones de Acción *@
+                            <div class="modal-footer px-0 pb-0 pt-3 border-top-0">
+                                <button type="button" class="btn btn-outline-secondary" @onclick="CerrarModal">
+                                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-warning px-4 fw-bold">
+                                    <i class="bi bi-check-circle me-1"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 }
