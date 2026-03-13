@@ -36,7 +36,7 @@ namespace WebApiNet.Application.Services
             var alquiler = _mapper.Map<Alquiler>(request);
             alquiler.ClienteDni = dni;
 
-            if(request.FechaDevolucionPrevista.CompareTo(DateOnly.FromDateTime(DateTime.UtcNow)) <= 0)
+            if (request.FechaDevolucionPrevista.CompareTo(DateOnly.FromDateTime(DateTime.UtcNow)) <= 0)
                 throw new InvalidOperationException("La fecha de devolución prevista debe ser posterior a la fecha actual.");
 
             var precioAlquiler = vehiculo.Precio * (request.FechaDevolucionPrevista.DayNumber - DateOnly.FromDateTime(DateTime.UtcNow).DayNumber);
@@ -86,8 +86,19 @@ namespace WebApiNet.Application.Services
             var fechaDevolucion = DateOnly.FromDateTime(DateTime.UtcNow);
             vehiculo.Estado = EstadoVehiculo.Disponible;
 
-            var alquilerFinalizado = await _unitOfWork.Alquiler.FinalizarAlquilerAsync(alquiler.Id, fechaDevolucion);
+            decimal ajustePrecio = CalcularPrecioAlquiler(alquiler.FechaDevolucionPrevista, fechaDevolucion, vehiculo.Precio);
+
+            alquiler.Precio += ajustePrecio;
+
+            if (alquiler.Precio <= 0)
+            {
+                alquiler.Precio = vehiculo.Precio;
+            }
+
+            await _unitOfWork.Alquiler.UpdateAsync(alquiler.Id, alquiler);
             await _unitOfWork.Vehiculo.UpdateAsync(vehiculo.Matricula, vehiculo);
+            var alquilerFinalizado = await _unitOfWork.Alquiler.FinalizarAlquilerAsync(alquiler.Id, fechaDevolucion);
+           
 
             return _mapper.Map<AlquilerFinalizadoResponse>(alquilerFinalizado);
         }
@@ -97,17 +108,33 @@ namespace WebApiNet.Application.Services
             var dni = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                 throw new UnauthorizedAccessException("No se ha encontrado DNI en el token.");
 
-            var vehiculo =  await _unitOfWork.Vehiculo.GetByIdAsync(vehiculoMatricula) ??
+            var vehiculo = await _unitOfWork.Vehiculo.GetByIdAsync(vehiculoMatricula) ??
                 throw new NotFoundException($"No existe un vehículo con la matrícula {vehiculoMatricula}.");
 
             var alquiler = await _unitOfWork.Alquiler.GetActiveByDniAndMatriculaAsync(dni, vehiculoMatricula) ??
                 throw new NotFoundException("No tienes un alquiler activo para este vehículo.");
 
+            decimal precioAlquiler = CalcularPrecioAlquiler(alquiler.FechaDevolucionPrevista, request.FechaDevolucionPrevista, vehiculo.Precio);
+
             alquiler.FechaDevolucionPrevista = request.FechaDevolucionPrevista;
+            alquiler.Precio += precioAlquiler;
 
             var alquilerActualizado = await _unitOfWork.Alquiler.UpdateAsync(alquiler.Id, alquiler);
 
             return _mapper.Map<AlquilerResponse>(alquilerActualizado);
+        }
+
+        private decimal CalcularPrecioAlquiler(DateOnly fechaActual, DateOnly fechaNueva, decimal precioAlquilerVehiculo)
+        {
+            // Restamos Nueva - Actual: 
+            // Si Nueva es 15 y Actual es 13, da 2 (positivo).
+            // Si Nueva es 11 y Actual es 13, da -2 (negativo).
+            var diasAlquiler = fechaNueva.DayNumber - fechaActual.DayNumber;
+
+            // Calculamos el factor (el resultado será negativo si hay días de menos)
+            var factorPrecio = diasAlquiler * precioAlquilerVehiculo;
+
+            return factorPrecio;
         }
     }
 }
