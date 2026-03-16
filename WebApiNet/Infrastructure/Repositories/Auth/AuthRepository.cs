@@ -17,7 +17,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
         public async Task<Cliente> UpdateAsync(string id, Cliente cliente)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_update_cliente";
             var parameters = new DynamicParameters();
@@ -38,7 +38,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
         public async Task<Cliente> AddAsync(Cliente cliente)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_insertar_cliente";
             var parameters = new DynamicParameters();
@@ -59,7 +59,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
         public async Task<bool> DeleteAsync(string dni)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
             string procedureName = "sp_delete_cliente";
             var parameters = new DynamicParameters();
             parameters.Add("@p_dni", dni);
@@ -80,7 +80,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
         public async Task<Cliente?> GetByIdAsync(string id)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_cliente_dni";
             var parameters = new DynamicParameters();
@@ -97,7 +97,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
         public async Task<PagedResult<Cliente>> GetAllAsync(int pageNumber, int pageSize)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
             string procedureName = "sp_obtener_clientes";
             var parameters = new DynamicParameters();
             parameters.Add("@p_page_number", pageNumber);
@@ -125,7 +125,7 @@ namespace WebApiNet.Infrastructure.Repositories.Auth
 
         public async Task<Cliente> GetByEmailAsync(string email)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_cliente_email";
             var parameters = new DynamicParameters();

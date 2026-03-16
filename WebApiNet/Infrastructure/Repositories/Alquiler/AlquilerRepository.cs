@@ -18,7 +18,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<Alquiler> AddAsync(Alquiler alquiler)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
             
             string procedureName = "sp_insert_alquiler";
             var parameters = new DynamicParameters();
@@ -40,7 +40,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<bool> DeleteAsync(int id)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
             
             string procedureName = "sp_delete_alquiler";
             var parameters = new DynamicParameters();
@@ -67,7 +67,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<Alquiler?> GetByIdAsync(int id)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_alquiler_id";
             var parameters = new DynamicParameters();
@@ -84,7 +84,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<PagedResult<Alquiler>> GetPagedAsync(int pageNumber, int pageSize)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_alquileres";
             var parameters = new DynamicParameters();
@@ -113,7 +113,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<Alquiler> UpdateAsync(int id, Alquiler entity)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_update_alquiler";
             var parameters = new DynamicParameters();
@@ -134,7 +134,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<IEnumerable<Alquiler>> GetAllByDniAsync(string dni)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_alquileres_por_cliente";
             var parameters = new DynamicParameters();
@@ -151,7 +151,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<Alquiler?> GetActiveByDniAndMatriculaAsync(string dni, string matricula)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_alquiler_activo";
             var parameters = new DynamicParameters();
@@ -169,7 +169,7 @@ namespace WebApiNet.Infrastructure.Repositories.AlquilerRepo
 
         public async Task<Alquiler> FinalizarAlquilerAsync(int id, DateOnly fechaDevolucionReal)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_finalizar_alquiler";
             var parameters = new DynamicParameters();

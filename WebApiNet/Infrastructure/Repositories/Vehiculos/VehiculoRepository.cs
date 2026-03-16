@@ -16,7 +16,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
         }
         public async Task<Vehiculo?> GetByIdAsync(string matricula)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_obtener_vehiculo_por_matricula";
             var parameters = new DynamicParameters();
@@ -33,7 +33,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<Vehiculo> AddAsync(Vehiculo vehiculo)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_insertar_vehiculo";
             var parameters = new DynamicParameters();
@@ -57,7 +57,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<bool> DeleteAsync(string matricula)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
 
             string procedureName = "sp_delete_vehiculo";
@@ -74,7 +74,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<Vehiculo> UpdateAsync(string matricula, Vehiculo vehiculo)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
 
             string procedureName = "sp_update_vehiculo";
             var parameters = new DynamicParameters();
@@ -99,7 +99,7 @@ namespace WebApiNet.Infrastructure.Repositories.Vehiculos
 
         public async Task<PagedResult<Vehiculo>> GetAllAsync(int pageNumber, int pageSize)
         {
-            using var connection = _context.CreateConnection();
+            using var connection = _context.CreateReadConnection();
             string procedureName = "sp_obtener_vehiculos";
             var parameters = new DynamicParameters();
             parameters.Add("@p_page_number", pageNumber);
