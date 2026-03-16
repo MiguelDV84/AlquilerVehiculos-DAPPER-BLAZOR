@@ -14,7 +14,7 @@ namespace WebApiNet.Presentation.Endpoints
 
             group.MapPost("/", CreateAlquiler)
                 .WithName("CreateAlquiler");
-    
+
             group.MapGet("/", GetAllAlquileres)
                 .WithName("GetAllAlquileres");
 

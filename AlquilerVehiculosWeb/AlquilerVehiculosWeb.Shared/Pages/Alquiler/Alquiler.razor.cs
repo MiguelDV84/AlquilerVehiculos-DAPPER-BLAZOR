@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WebApiNet.Shared.DTOs.Alquiler;
 using WebApiNet.Shared.DTOs.Common;
 using WebApiNet.Shared.DTOs.Vehiculo;
+using WebApiNet.Shared.Enums;
 using WebApiNet.Shared.Paged;
 
 namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
@@ -27,7 +28,7 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
         private string matriculaSeleccionada = "";
         private AlquilerResponse? detalleAlquiler;
 
-        //Variable para el modal de crear un nuevo alquiler
+        //Variables para el modal de crear un nuevo alquiler
         private bool mostrarModalCrear = false;
         private AlquilerRequest nuevoAlquiler = new AlquilerRequest
         {
@@ -37,6 +38,10 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
         private VehiculoResponse? vehiculoSeleccionado;
         private decimal PrecioPorDia = 0;
 
+        //Variables para el modal de modificar alquiler
+        private bool mostrarModalModificar = false;
+        private AlquilerUpdateRequest updateRequest = new();
+        private string? matriculaModificar;
 
         private List<AlquilerResponse>? AlquilerFiltrados =>
             string.IsNullOrWhiteSpace(textoBusqueda)
@@ -194,6 +199,7 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
             {
                 mostrarModalDetalle = false;
                 mostrarModalCrear = false;
+                mostrarModalModificar = false;
             }
         }
 
@@ -212,7 +218,9 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
                     if (result?.Data?.Items != null)
                     {
                         // Solo mostramos vehículos en estado 0 (Disponible)
-                        ListadoVehiculos = result.Data.Items.Where(v => v.Estado == 0).ToList();
+                        ListadoVehiculos = result.Data.Items
+                        .Where(v => (EstadoVehiculo)v.Estado == EstadoVehiculo.Disponible)
+                        .ToList();
                     }
                 }
             }
@@ -241,34 +249,8 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
             {
                 vehiculoSeleccionado = null;
                 PrecioPorDia = 0;
+                nuevoAlquiler.VehiculoMatricula = string.Empty;
             }
-        }
-
-        private decimal CalcularPrecioNuevoAlquiler()
-        {
-            if (vehiculoSeleccionado == null) return 0;
-
-            DateTime fechaPrevista = nuevoAlquiler.FechaDevolucionPrevista.ToDateTime(TimeOnly.MinValue);
-            DateTime hoy = DateTime.Now.Date;
-
-            int dias = (fechaPrevista - hoy).Days;
-            if (dias <= 0) dias = 1;
-
-            return dias * vehiculoSeleccionado.Precio;
-        }
-
-        private decimal CalcularPrecioTotalDetalle()
-        {
-            if (detalleAlquiler == null) return 0;
-
-            DateTime inicio = detalleAlquiler.FechaAlquiler.ToDateTime(TimeOnly.MinValue);
-            DateTime fin = detalleAlquiler.FechaDevolucionPrevista.ToDateTime(TimeOnly.MinValue);
-
-            int dias = (fin - inicio).Days;
-            if (dias <= 0) dias = 1;
-
-            // Aquí multiplicamos por el precio que ya viene en el detalle
-            return dias * detalleAlquiler.Precio;
         }
 
         private async Task EjecutarCrearAlquiler()
@@ -296,6 +278,86 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
             {
                 await JS.InvokeVoidAsync("alert", $"Error al procesar: {ex.Message}");
             }
+        }
+
+        private decimal TotalCalculado
+        {
+            get
+            {
+                if (vehiculoSeleccionado == null) return 0;
+
+                var fechaInicio = DateOnly.FromDateTime(DateTime.UtcNow).DayNumber;
+                var fechaFin = nuevoAlquiler.FechaDevolucionPrevista.DayNumber;
+
+                int dias = (fechaFin - fechaInicio);
+
+                if (dias <= 0) dias = 1;
+
+                return dias * vehiculoSeleccionado.Precio;
+            }
+        }
+
+        private async Task MostrarModalModificar(string matricula)
+        { 
+            matriculaModificar = matricula;
+            updateRequest = new AlquilerUpdateRequest();
+            mostrarModalModificar = true;
+            
+            await ObtenerAlquilerParaEdicion(matricula);
+
+        }
+
+        private async Task ObtenerAlquilerParaEdicion(string matricula)
+        {
+            try
+            {
+                var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+                Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await Http.GetFromJsonAsync<ApiResponse<AlquilerResponse>>($"api/alquileres/{matricula}");
+
+                if (response != null && response.Success)
+                {
+                    detalleAlquiler = response.Data;
+
+                    updateRequest.FechaDevolucionPrevista = response.Data.FechaDevolucionPrevista;
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+            }
+        }
+
+        private async Task EjecutarModificarAlquiler()
+        {
+            try
+            {
+                var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+
+                Http.DefaultRequestHeaders.Authorization = null;
+                Http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await Http.PutAsJsonAsync($"api/alquileres/{matriculaModificar}", updateRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Alquiler modificado con éxito.");
+                    mostrarModalModificar = false; 
+                    await CargarAlquileres(token); 
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Error: {error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Error al modificar alquiler: {ex.Message}");
+            }
+
         }
     }
 }

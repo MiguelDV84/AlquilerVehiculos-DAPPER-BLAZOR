@@ -2,9 +2,6 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-@* EL LAYOUT ES EL MARCO DE LA APP. 
-   Todo lo que pongas aquí aparecerá en TODAS las páginas.
-*@
 
 <div class="page">
     @* NAVBAR: Usamos Bootstrap para una barra de navegación profesional *@
@@ -77,52 +74,6 @@
         </article>
     </main>
 </div>
-
-@code {
-    private string? usuarioNombre;
-    private bool isNavMenuCollapsed = true;
-    private bool isUserMenuOpen = false;
-
-    private void ToggleNavMenu()
-    {
-        isNavMenuCollapsed = !isNavMenuCollapsed;
-    }
-
-    // --- SINCRONIZACIÓN DE ESTADO ---
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Al cargar la App, miramos si hay un nombre de usuario en LocalStorage.
-            // Esto permite que el nombre aparezca arriba aunque refresques la página.
-            var nombre = await JS.InvokeAsync<string>("localStorage.getItem", "usuarioNombre");
-            if (!string.IsNullOrEmpty(nombre))
-            {
-                usuarioNombre = nombre;
-                StateHasChanged(); // Forzamos actualización para que aparezca el "Hola, Nombre"
-            }
-        }
-    }
-
-    // --- ACCIÓN: LOGOUT ---
-    private async Task CerrarSesion()
-    {
-        // 1. Limpiamos el almacenamiento local (borramos Token y Nombre).
-        await JS.InvokeVoidAsync("localStorage.removeItem", "token");
-        await JS.InvokeVoidAsync("localStorage.removeItem", "usuarioNombre");
-
-        // 2. Limpiamos la variable local.
-        usuarioNombre = null;
-
-        // 3. Redirigimos al Login y forzamos recarga para limpiar cualquier rastro de la sesión.
-        Navigation.NavigateTo("/login", forceLoad: true);
-    }
-
-    // Métodos para controlar el despliegue de menús (UX)
-    private void ToggleUserMenu() => isUserMenuOpen = !isUserMenuOpen;
-    private void CloseMenu() { isNavMenuCollapsed = true; isUserMenuOpen = false; }
-}
-
 
 
 <!-- 

@@ -95,6 +95,9 @@ else
                                         <button class="btn btn-danger btn-sm" @onclick="() => FinalizarAquiler(alquiler.VehiculoMatricula)">
                                             <i class="bi bi-check2-circle"></i> Finalizar
                                         </button>
+                                        <button class="btn btn-outline-warning btn-sm flex-grow-1" @onclick="() => MostrarModalModificar(alquiler.VehiculoMatricula)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
                                     }
                                     else
                                     {
@@ -132,16 +135,16 @@ else
                             <div class="row">
                                 
                                 <div class="col-6">
-                                        <label class="fw-bold">Matrícula del Vehículo:</label>
-                                        <span class="ms-2">@detalleAlquiler.VehiculoMatricula</span>
-                                    </div>
+                                    <label class="fw-bold">Matrícula del Vehículo:</label>
+                                    <span class="ms-2">@detalleAlquiler.VehiculoMatricula</span>
+                                </div>
                                 <div class="col-6">
-                                        <label class="fw-bold">Fecha de Inicio:</label>
-                                        <span class="ms-2">@detalleAlquiler.FechaAlquiler.ToString("dd/MM/yyyy")</span>
-                                    </div>
+                                    <label class="fw-bold">Fecha de Inicio:</label>
+                                    <span class="ms-2">@detalleAlquiler.FechaAlquiler.ToString("dd/MM/yyyy")</span>
+                                </div>
                                 <div class="col-6">
                                     <label class="fw-bold">Precio Total:</label>
-                                    <span class="ms-2 badge bg-success">@CalcularPrecioTotalDetalle().ToString("N2") €</span>
+                                    <span class="ms-2 badge bg-success">@detalleAlquiler.Precio.ToString("N2") €</span>
                                 </div>
                                 <div class="col-6">
                                     <label class="fw-bold">Fecha de Fin:</label>
@@ -194,7 +197,7 @@ else
                                             </div>
                                             <div class="col-6"><strong>Marca:</strong> @vehiculoSeleccionado.Marca</div>
                                             <div class="col-6"><strong>Modelo:</strong> @vehiculoSeleccionado.Modelo</div>
-                                            <div class="col-6 mt-2"><strong>Precio:</strong> <span class="badge bg-success">@CalcularPrecioNuevoAlquiler().ToString("N2")</span></div>
+                                            <div class="col-6 mt-2"><strong>Precio:</strong> <span class="badge bg-success">@vehiculoSeleccionado.Precio.ToString("N2")</span></div>
                                             <div class="col-6">
                                                 <strong>Tipo de Vehiculo:</strong>
                                                 <span class="ms-2">
@@ -240,10 +243,12 @@ else
                                         <ValidationMessage For="@(() => nuevoAlquiler.FechaDevolucionPrevista)" class="text-danger small" />
                                     </div>
 
-                                    <div class="alert alert-info d-flex justify-content-between">
-                                        <span>Total Estimado:</span>
-                                        <span class="fw-bold">@CalcularPrecioNuevoAlquiler().ToString("N2") €</span>
-                                    </div>
+                                    
+                                        <div class="alert alert-info d-flex justify-content-between">
+                                            <span>Total Estimado:</span>
+                                            <span class="fw-bold">@TotalCalculado.ToString("N2") €</span>
+                                        </div>
+                                    
 
                                     <div class="d-flex justify-content-end gap-2 mt-4">
                                         <button type="button" class="btn btn-light border" @onclick="CerrarModal">Cancelar</button>
@@ -252,6 +257,65 @@ else
                                 </EditForm>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (mostrarModalModificar)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title"><i class="bi bi-pencil"></i> Modificar Alquiler</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        @if (detalleAlquiler == null)
+                        {
+                            <div class="text-center p-5">
+                                <div class="spinner-border text-warning" role="status"></div>
+                                <p class="mt-2">Cargando datos del alquiler...</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <EditForm Model="updateRequest" OnValidSubmit="EjecutarModificarAlquiler">
+                                <DataAnnotationsValidator />
+                                <div class="row">
+                                    <div class="col-md-6 border-end">
+                                        <h6 class="text-muted text-uppercase fw-bold mb-3 small">Estado Actual</h6>
+                                        <div class="p-3 bg-light rounded-3">
+                                            <p class="mb-2"><strong>Matrícula:</strong> @detalleAlquiler.VehiculoMatricula</p>
+                                            <p class="mb-2"><strong>Fecha Inicio:</strong> @detalleAlquiler.FechaAlquiler.ToString("dd/MM/yyyy")</p>
+                                            <p class="mb-0">
+                                                <strong>Precio hasta hoy:</strong>
+                                                <span class="badge bg-dark">@detalleAlquiler.Precio.ToString("N2") €</span>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 ps-md-4">
+                                        <h6 class="text-muted text-uppercase fw-bold mb-3 small">Nueva Fecha de Devolución</h6>
+                                        <div class="mb-4">
+                                            <InputDate @bind-Value="updateRequest.FechaDevolucionPrevista" class="form-control form-control-lg border-warning" />
+                                            <ValidationMessage For="@(() => updateRequest.FechaDevolucionPrevista)" class="text-danger small" />
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-warning fw-bold shadow-sm">
+                                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" @onclick="() => mostrarModalModificar = false">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </EditForm>
+                        }
                     </div>
                 </div>
             </div>
