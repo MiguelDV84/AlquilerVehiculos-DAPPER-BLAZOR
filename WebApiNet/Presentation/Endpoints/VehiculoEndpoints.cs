@@ -1,6 +1,9 @@
-﻿using WebApiNet.Core.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using WebApiNet.Core.Interfaces;
+using WebApiNet.Presentation.Constants;
 using WebApiNet.Shared.DTOs.Common;
 using WebApiNet.Shared.DTOs.Vehiculo;
+using WebApiNet.Shared.Enums;
 
 namespace WebApiNet.Presentation.Endpoints
 {
@@ -13,7 +16,8 @@ namespace WebApiNet.Presentation.Endpoints
                 .RequireAuthorization();
 
             group.MapPost("/", CreateVehiculo)
-                .WithName("CreateVehiculo");
+                .WithName("CreateVehiculo")
+                .RequireAuthorization(new AuthorizeAttribute { Roles = RolesConstantes.Admin });
 
             group.MapGet("/", GetAllVehiculos)
                 .WithName("GetAllVehiculos");
@@ -22,10 +26,12 @@ namespace WebApiNet.Presentation.Endpoints
                 .WithName("GetVehiculo");
 
             group.MapDelete("/{matricula}", DeleteVehiculo)
-                .WithName("DeleteVehiculo");
+                .WithName("DeleteVehiculo")
+                .RequireAuthorization(new AuthorizeAttribute { Roles = RolesConstantes.Admin });
 
             group.MapPut("/{matricula}", UpdateVehiculo)
-                .WithName("UpdateVehiculo");
+                .WithName("UpdateVehiculo")
+                .RequireAuthorization(new AuthorizeAttribute { Roles = RolesConstantes.Admin });
         }
 
         private static async Task<IResult> CreateVehiculo(VehiculoRequest request, IVehiculoService service)
