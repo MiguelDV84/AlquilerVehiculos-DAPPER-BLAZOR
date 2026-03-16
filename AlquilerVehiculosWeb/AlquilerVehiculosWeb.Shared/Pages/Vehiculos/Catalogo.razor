@@ -5,6 +5,7 @@
 @using WebApiNet.Shared.DTOs.Vehiculo
 @using WebApiNet.Shared.Enums
 @using WebApiNet.Shared.Paged
+@using System.IdentityModel.Tokens.Jwt;
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -38,11 +39,13 @@ else
                                @bind:event="oninput" />
                     </div>
                 </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <button class="btn btn-success btn-lg" @onclick="MostrarModalCrear">
-                        <i class="bi bi-plus-circle me-2"></i>Nuevo Vehículo
-                    </button>
-                </div>
+                @if (userRole == "Admin"){
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <button class="btn btn-success btn-lg" @onclick="MostrarModalCrear">
+                            <i class="bi bi-plus-circle me-2"></i>Nuevo Vehículo
+                        </button>
+                    </div>
+                }
             </div>
         </div>
 
@@ -123,12 +126,14 @@ else
                                         <button class="btn btn-outline-primary btn-sm flex-grow-1" @onclick="() => MostrarDetalle(v.Matricula)">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button class="btn btn-outline-warning btn-sm flex-grow-1" @onclick="() => MostrarModalModificar(v.Matricula)">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger btn-sm flex-grow-1" @onclick="() => BorrarVehiculo(v.Matricula)">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        @if (userRole == "Admin"){
+                                            <button class="btn btn-outline-warning btn-sm flex-grow-1" @onclick="() => MostrarModalModificar(v.Matricula)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm flex-grow-1" @onclick="() => BorrarVehiculo(v.Matricula)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
                                     </div>
                                 </div>
                             </div>
