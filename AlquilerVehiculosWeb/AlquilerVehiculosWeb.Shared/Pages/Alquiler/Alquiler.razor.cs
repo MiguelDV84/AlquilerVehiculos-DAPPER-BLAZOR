@@ -50,6 +50,14 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
                     a.VehiculoMatricula.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase)
                 ).ToList();
 
+        // Método auxiliar para obtener los datos del vehículo asociado a un alquiler.
+        private VehiculoResponse? ObtenerDatosVehiculo(string matricula)
+        {
+            return ListadoVehiculos?.FirstOrDefault(v =>
+                v.Matricula.Equals(matricula, StringComparison.OrdinalIgnoreCase));
+        }
+
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -61,7 +69,7 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
                     isAuthorized = true;
                     
                     await CargarAlquileres(MiToken);
-
+                    await CargarVehiculos(MiToken);
                     // Notificamos a Blazor que el estado ha cambiado para que pinte los coches.
                     StateHasChanged();
                 }
@@ -210,6 +218,7 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
                 Http.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
+                // Pedimos todos los vehículos (sin filtrar por estado aquí)
                 var response = await Http.GetAsync("api/vehiculos?pageNumber=1&pageSize=100");
 
                 if (response.IsSuccessStatusCode)
@@ -217,10 +226,8 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Alquiler
                     var result = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResult<VehiculoResponse>>>();
                     if (result?.Data?.Items != null)
                     {
-                        // Solo mostramos vehículos en estado 0 (Disponible)
-                        ListadoVehiculos = result.Data.Items
-                        .Where(v => (EstadoVehiculo)v.Estado == EstadoVehiculo.Disponible)
-                        .ToList();
+                        // Guardamos TODOS para que las tarjetas de alquileres puedan mostrar Marca/Modelo
+                        ListadoVehiculos = result.Data.Items.ToList();
                     }
                 }
             }

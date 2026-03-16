@@ -74,6 +74,46 @@
                 </div>
             </div>
         </div>
+        @if (listadoAlquiler == null)
+        {
+            <p>Cargando tus alquileres...</p>
+        }
+        else if (!listadoAlquiler.Any())
+        {
+            <div class="alert alert-info">Aún no tienes alquileres registrados.</div>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var alquiler in listadoAlquiler)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                <span class="fw-bold"><i class="bi bi-car-front"></i> @alquiler.VehiculoMatricula </span>
+                                <span class="badge bg-success">@alquiler.Precio.ToString("N2")€</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text"><strong>Inicio:</strong> @alquiler.FechaAlquiler</p>
+                                <p class="card-text"><strong>Prevista:</strong> @alquiler.FechaDevolucionPrevista</p>
+                                @if (alquiler.FechaDevolucionReal.HasValue)
+                                {
+                                    <p class="card-text text-success"><strong>Finalizado:</strong> @alquiler.FechaDevolucionReal.Value</p>
+                                }
+                                else
+                                {
+                                    <p class="card-text text-warning"><strong>Estado:</strong> Activo</p>
+                                }
+
+                            </div>
+                            <button type="button" class="btn btn-outline-info btn-sm" @onclick="LlevarAlquiler">
+                                <i class="bi bi-arrow-right me-2"></i>Volver al Alquiler
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>   
+        }
     </div>
 </div>
 
