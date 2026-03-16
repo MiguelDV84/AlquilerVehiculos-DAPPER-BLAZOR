@@ -65,43 +65,84 @@ else
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                 @foreach (var alquiler in AlquilerFiltrados)
                 {
+                    @* Buscamos el vehículo correspondiente para mostrar marca/modelo en la card *@
+                    var vehiculoAsociado = ObtenerDatosVehiculo(alquiler.VehiculoMatricula);
+                    
                     <div class="col">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                                <span class="fw-bold"><i class="bi bi-car-front"></i> @alquiler.VehiculoMatricula</span>
-                                <span class="badge bg-success">@alquiler.Precio.ToString("N2") €</span>
+                        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                                <span class="fw-bold"><i class="bi bi-hash me-1"></i>@alquiler.VehiculoMatricula</span>
+                                <span class="badge rounded-pill bg-success fs-6">@alquiler.Precio.ToString("N2") €</span>
                             </div>
-                            <div class="card-body">
-                                <p class="card-text"><strong>Cliente:</strong> @alquiler.ClienteDni</p>
-                                <p class="card-text"><strong>Inicio:</strong> @alquiler.FechaAlquiler</p>
-                                <p class="card-text"><strong>Prevista:</strong> @alquiler.FechaDevolucionPrevista</p>
 
-                                @if (alquiler.FechaDevolucionReal.HasValue)
-                                {
-                                    <p class="card-text text-success"><strong>Finalizado:</strong> @alquiler.FechaDevolucionReal.Value</p>
-                                }
-                                else
-                                {
-                                    <p class="card-text text-warning"><strong>Estado:</strong> Activo</p>
-                                }
+                            <div class="card-body">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block fw-bold" style="font-size: 0.7rem;">CLIENTE</label>
+                                        <p class="mb-0 text-truncate"><i class="bi bi-person text-primary me-1"></i> @alquiler.ClienteDni</p>
+                                    </div>
+                                    <div class="col-6 border-start">
+                                        <label class="text-muted small d-block fw-bold" style="font-size: 0.7rem;">ESTADO</label>
+                                        @if (alquiler.FechaDevolucionReal.HasValue)
+                                        {
+                                            <span class="text-success fw-bold small"><i class="bi bi-check-circle-fill me-1"></i>Finalizado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-warning fw-bold small"><i class="bi bi-clock-history me-1"></i>Activo</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <hr class="text-muted opacity-25" />
+
+                                @* Información del Vehículo *@
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block fw-bold" style="font-size: 0.7rem;">MARCA</label>
+                                        <p class="small mb-0">@(vehiculoAsociado?.Marca ?? "---")</p>
+                                    </div>
+                                    <div class="col-6 border-start">
+                                        <label class="text-muted small d-block fw-bold" style="font-size: 0.7rem;">MODELO</label>
+                                        <p class="small mb-0">@(vehiculoAsociado?.Modelo ?? "---")</p>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block fw-bold" style="font-size: 0.7rem;">INICIO</label>
+                                        <p class="small mb-0"><i class="bi bi-calendar-event me-1"></i> @alquiler.FechaAlquiler.ToShortDateString()</p>
+                                    </div>
+                                    <div class="col-6 border-start">
+                                        <label class="text-muted small d-block fw-bold" style="font-size: 0.7rem;">DEVOLUCIÓN</label>
+                                        <p class="small mb-0">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            @(alquiler.FechaDevolucionReal?.ToShortDateString() ?? alquiler.FechaDevolucionPrevista.ToShortDateString())
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-footer bg-white border-top-0">
+
+                            <div class="card-footer bg-light border-top-0 p-3">
                                 <div class="d-flex gap-2">
+                                    
                                     @if (!alquiler.FechaDevolucionReal.HasValue)
                                     {
-                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => MostrarDetalle(alquiler.VehiculoMatricula)">
-                                            <i class="bi bi-eye"></i> Ver Detalle
+                                        <button class="btn btn-outline-primary btn-sm flex-fill" @onclick="() => MostrarDetalle(alquiler.VehiculoMatricula)">
+                                            <i class="bi bi-eye"></i>
                                         </button>
-                                        <button class="btn btn-danger btn-sm" @onclick="() => FinalizarAquiler(alquiler.VehiculoMatricula)">
-                                            <i class="bi bi-check2-circle"></i> Finalizar
-                                        </button>
-                                        <button class="btn btn-outline-warning btn-sm flex-grow-1" @onclick="() => MostrarModalModificar(alquiler.VehiculoMatricula)">
+                                        <button class="btn btn-warning btn-sm flex-fill" @onclick="() => MostrarModalModificar(alquiler.VehiculoMatricula)">
                                             <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm flex-fill" @onclick="() => FinalizarAquiler(alquiler.VehiculoMatricula)">
+                                            <i class="bi bi-check2-circle"></i>
                                         </button>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary p-2 w-100">Completado</span>
+                                        <div class="bg-secondary bg-opacity-10 text-secondary text-center rounded py-1 w-100 fw-bold small">
+                                            <i class="bi bi-archive me-1"></i> Histórico
+                                        </div>
                                     }
                                 </div>
                             </div>
@@ -180,7 +221,7 @@ else
                                     <option value="">-- Selecciona Matrícula --</option>
                                     @if (ListadoVehiculos != null)
                                     {
-                                        @foreach (var v in ListadoVehiculos)
+                                        @foreach (var v in ListadoVehiculos.Where(x => (EstadoVehiculo)x.Estado == EstadoVehiculo.Disponible))
                                         {
                                             <option value="@v.Matricula">@v.Matricula (@v.Marca @v.Modelo)</option>
                                         }
