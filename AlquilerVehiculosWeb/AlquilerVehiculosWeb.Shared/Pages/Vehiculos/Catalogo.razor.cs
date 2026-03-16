@@ -2,6 +2,7 @@
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
@@ -19,6 +20,7 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Vehiculos
         private string textoBusqueda = "";
 
         private bool isAuthorized = false;
+
 
         private int currentPage = 1;
         private int pageSize = 5;
@@ -51,6 +53,18 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Vehiculos
         private VehiculoUpdateRequest? modeloEdicion = new();
         private string? matriculaEnEdicion;
 
+        private string? userRole;
+        
+        private void ObtenerRolDelUsuario(string token)
+        {
+            // 1. Creamos el "traductor" de tokens
+            var handler = new JwtSecurityTokenHandler();
+
+            var jsonToken = handler.ReadJwtToken(token);
+
+            userRole = jsonToken?.Claims.FirstOrDefault(c => c.Type.Contains("role"))?.Value;
+        }
+        
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (!firstRender) return;
@@ -61,6 +75,8 @@ namespace AlquilerVehiculosWeb.Shared.Pages.Vehiculos
             {
 
                 isAuthorized = true;
+                ObtenerRolDelUsuario(token);
+
                 await CargarVehiculos(token);
 
                 StateHasChanged();
